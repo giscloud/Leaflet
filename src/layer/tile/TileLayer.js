@@ -43,11 +43,7 @@ L.TileLayer = L.Class.extend({
 		this._createTileProto();
 
 		// set up events
-                map.on('viewreset',
-                        function(e) {
-                                this._reset(e.hard);
-                        },
-                        this);
+		map.on('viewreset', this._resetCallback, this);
 
 		if (this.options.updateWhenIdle) {
 			map.on('moveend', this._update, this);
@@ -68,7 +64,7 @@ L.TileLayer = L.Class.extend({
 		        this._removeOldContainer();
                 }
 
-		this._map.off('viewreset', this._reset, this);
+		this._map.off('viewreset', this._resetCallback, this);
 
 		if (this.options.updateWhenIdle) {
 			this._map.off('moveend', this._update, this);
@@ -93,7 +89,7 @@ L.TileLayer = L.Class.extend({
 			}
 		}
 	},
-
+	
 	setVisible: function(onoff) {
 		this._container && L.DomUtil.setVisible(this._container, onoff);
 		this.options.visible = onoff;
@@ -133,9 +129,9 @@ L.TileLayer = L.Class.extend({
 		}
 	},
 
-	_resetCallback : function(e) {
-	        this._reset(e.hard);
-        },
+	_resetCallback: function(e) {
+		this._reset(e.hard);
+	},
 
 	_reset: function(clearOldContainer) {
 		this._tiles = {};
@@ -190,15 +186,15 @@ L.TileLayer = L.Class.extend({
 		for (var k = 0, len = this._tilesToLoad; k < len; k++) {
 			this._addTile(queue[k], fragment);
 		}
-
+		
 		if (this._tilesToLoad === 0 && this._map._tileLayersToLoad > 0)
 			this._map._tileLayersToLoad--;
-
+		
 		this._container.appendChild(fragment);
 	},
 
 	_removeOtherTiles: function(bounds) {
-		var kArr, x, y, key;
+		var kArr, x, y, key, tile;
 
 		for (key in this._tiles) {
 			if (this._tiles.hasOwnProperty(key)) {
@@ -208,12 +204,14 @@ L.TileLayer = L.Class.extend({
 
 				// remove tile if it's out of bounds
 				if (x < bounds.min.x || x > bounds.max.x || y < bounds.min.y || y > bounds.max.y) {
+					tile = this._tiles[key];
+					this.fire("tileunload", {tile: tile, url: tile.src});
 
 					// evil, don't do this! crashes Android 3, produces load errors, doesn't solve memory leaks
 					// this._tiles[key].src = '';
 
-					if (this._tiles[key].parentNode == this._container) {
-						this._container.removeChild(this._tiles[key]);
+					if (tile.parentNode == this._container) {
+						this._container.removeChild(tile);
 					}
 					delete this._tiles[key];
 				}
