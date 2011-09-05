@@ -30,12 +30,15 @@ L.Map.include(!L.DomUtil.TRANSITION ? {} : {
 		this._animateToZoom = zoom;
 
 		var transform = L.DomUtil.TRANSFORM;
-
+        var hasAnimated = false;
 		for (id in this._layers) {
 			if (!this._layers.hasOwnProperty(id)) continue;
 
 			layer = this._layers[id];
-			if (L.TileLayer && (layer instanceof L.TileLayer) && layer.getVisible() && layer._container) {
+			if (L.TileLayer && (layer instanceof L.TileLayer) && layer.getVisible()
+                && layer._container && layer.options.zoomAnimation) {
+
+                hasAnimated = true;
 
 				var container = layer._container;
 				//dumb FireFox hack, I have no idea why this magic zero translate fixes the scale transition problem
@@ -62,6 +65,10 @@ L.Map.include(!L.DomUtil.TRANSITION ? {} : {
 				container.transition.run(options);
             }
         }
+
+        if (!hasAnimated) {
+            this._onZoomTransitionEnd();
+        }
 	},
 
 	_prepareTileBg: function() {
@@ -76,11 +83,16 @@ L.Map.include(!L.DomUtil.TRANSITION ? {} : {
 				if (this.options.zoomAnimation && L.TileLayer && (layer instanceof L.TileLayer) &&
 					layer.getVisible() && !layer._container.transition) {
 
-					layer._container.transition =
-						new L.Transition(layer._container, {duration: 0.3, easing: 'cubic-bezier(0.25,0.1,0.25,0.75)'});
+                    if (layer.options.zoomAnimation) {
+					    layer._container.transition =
+						    new L.Transition(layer._container,
+                                             {duration: 0.3, easing: 'cubic-bezier(0.25,0.1,0.25,0.75)'});
 
-					if (i++ == 0)
-						layer._container.transition.on('end', this._onZoomTransitionEnd, this);
+					    if (i++ == 0)
+						    layer._container.transition.on('end', this._onZoomTransitionEnd, this);
+                    } else {
+                        layer._container.innerHTML = "";
+                    }
 				}
 			}
 		}
@@ -106,7 +118,8 @@ L.Map.include(!L.DomUtil.TRANSITION ? {} : {
 			if (!this._layers.hasOwnProperty(id)) continue;
 
 			layer = this._layers[id];
-			if (L.TileLayer && (layer instanceof L.TileLayer) && layer.getVisible() && layer._container) {
+			if (L.TileLayer && (layer instanceof L.TileLayer) && layer.getVisible()
+                && layer._container && layer.options.zoomAnimation) {
 				L.Util.falseFn(layer._container);
 			}
 		}
@@ -125,7 +138,7 @@ L.Map.include(!L.DomUtil.TRANSITION ? {} : {
 				if (this._layers.hasOwnProperty(id)) {
 					layer = this._layers[id];
 
-					if (L.TileLayer && (layer instanceof L.TileLayer)) {
+					if (L.TileLayer && (layer instanceof L.TileLayer) && layer.options.zoomAnimation) {
 						layer._removeOldContainer();
 					}
 				}

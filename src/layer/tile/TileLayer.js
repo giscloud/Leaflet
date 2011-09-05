@@ -17,6 +17,7 @@ L.TileLayer = L.Class.extend({
 		scheme: 'xyz',
 		continuousWorld: false,
 		noWrap: false,
+        zoomAnimation: true,
 
 		unloadInvisibleTiles: L.Browser.mobile,
 		updateWhenIdle: L.Browser.mobile
@@ -89,7 +90,7 @@ L.TileLayer = L.Class.extend({
 			}
 		}
 	},
-	
+
 	setVisible: function(onoff) {
 		this._container && L.DomUtil.setVisible(this._container, onoff);
 		this.options.visible = onoff;
@@ -189,7 +190,7 @@ L.TileLayer = L.Class.extend({
 		
 		if (this._tilesToLoad === 0 && this._map._tileLayersToLoad > 0)
 			this._map._tileLayersToLoad--;
-		
+
 		this._container.appendChild(fragment);
 	},
 
