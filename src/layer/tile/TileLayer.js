@@ -17,7 +17,7 @@ L.TileLayer = L.Class.extend({
 		scheme: 'xyz',
 		continuousWorld: false,
 		noWrap: false,
-                zoomAnimation: true,
+        zoomAnimation: true,
 		zoomOffset: 0,
 		unloadInvisibleTiles: L.Browser.mobile,
 		updateWhenIdle: L.Browser.mobile
@@ -147,6 +147,8 @@ L.TileLayer = L.Class.extend({
 			return;
 		}
 
+		this.fire("beforeupdate");
+
 		var bounds = this._map.getPixelBounds(),
 			tileSize = this.options.tileSize;
 
@@ -187,7 +189,7 @@ L.TileLayer = L.Class.extend({
 		for (var k = 0, len = this._tilesToLoad; k < len; k++) {
 			this._addTile(queue[k], fragment);
 		}
-		
+
 		if (this._tilesToLoad === 0 && this._map._tileLayersToLoad > 0)
 			this._map._tileLayersToLoad--;
 
@@ -319,7 +321,7 @@ L.TileLayer = L.Class.extend({
 	        this._oldContainer.innerHTML = "";
 	        this._map.getPanes().tilePane.removeChild(this._oldContainer);
 	        this._oldContainer = null;
-        },
+	},
 
 	_tileOnError: function(e) {
 		var layer = this._layer;
