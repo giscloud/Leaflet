@@ -86,16 +86,16 @@ L.TileLayer = L.Class.extend({
 			}
 		}
 	},
-	
+
 	setVisible: function(onoff) {
 		this._container && L.DomUtil.setVisible(this._container, onoff);
 		this.options.visible = onoff;
 		this._update();
 		return this;
 	},
-	
+
 	getVisible: function(onoff) {
-		return this.options.visible;	    
+		return this.options.visible;
 	},
 
 	_setOpacity: function(opacity) {
@@ -126,7 +126,14 @@ L.TileLayer = L.Class.extend({
 	},
 
 	_reset: function(clearOldContainer) {
+		var key;
+		for (key in this._tiles) {
+			if (this._tiles.hasOwnProperty(key)) {
+				this.fire("tileunload", { tile: this._tiles[key] });
+			}
+		}
 		this._tiles = {};
+
 		if (clearOldContainer && this._container)
 			this._container.innerHTML = "";
 		this._initContainer();
@@ -178,10 +185,10 @@ L.TileLayer = L.Class.extend({
 		for (var k = 0, len = this._tilesToLoad; k < len; k++) {
 			this._addTile(queue[k], fragment);
 		}
-		
+
 		if (this._tilesToLoad === 0 && this._map._tileLayersToLoad > 0)
 			this._map._tileLayersToLoad--;
-		
+
 		this._container.appendChild(fragment);
 	},
 
@@ -314,3 +321,4 @@ L.TileLayer = L.Class.extend({
 		}
 	}
 });
+
