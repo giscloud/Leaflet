@@ -102,6 +102,13 @@ L.Map.include(!L.DomUtil.TRANSITION ? {} : {
 
 	// stops loading all tiles in the background layer
 	_stopLoadingBgTiles: function() {
+
+		for (id in this._layers) {
+			if (this._layers.hasOwnProperty(id)) {
+				this._layers[id].fire("stoploadingtiles");
+			}
+		}
+
 		var tiles = [].slice.call(this._tileBg.getElementsByTagName('img'));
 
 		for (var i = 0, len = tiles.length; i < len; i++) {
