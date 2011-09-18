@@ -28,6 +28,8 @@ L.Map.include(!L.DomUtil.TRANSITION ? {} : {
 
 		this._animateToCenter = center;
 		this._animateToZoom = zoom;
+		this._animateOrigin = origin;
+		this._animateScale = scale;
 
 		var transform = L.DomUtil.TRANSFORM;
         var hasAnimated = false;
