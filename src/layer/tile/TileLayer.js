@@ -62,8 +62,8 @@ L.TileLayer = L.Class.extend({
 		this._container = null;
 
 		if (this._oldContainer) {
-		        this._removeOldContainer();
-                }
+			this._removeOldContainer();
+		}
 
 		this._map.off('viewreset', this._resetCallback, this);
 
@@ -324,10 +324,13 @@ L.TileLayer = L.Class.extend({
 	},
 
 	_removeOldContainer: function() {
-	        if (!this._oldContainer) return;
-	        this._oldContainer.innerHTML = "";
-	        this._map.getPanes().tilePane.removeChild(this._oldContainer);
-	        this._oldContainer = null;
+		if (!this._oldContainer) return;
+
+		this._oldContainer.innerHTML = "";
+		if (this._oldContainer.parentNode) {
+			this._oldContainer.parentNode.removeChild(this._oldContainer);
+		}
+		this._oldContainer = null;
 	},
 
 	_tileOnError: function(e) {
