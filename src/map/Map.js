@@ -68,7 +68,7 @@ L.Map = L.Class.extend({
 	// public methods that modify map state
 
 	// replaced by animation-powered implementation in Map.PanAnimation.js
-	setView: function(center, zoom, forceReset) {
+	setView: function(center, zoom/*, forceReset*/) {
 		// reset the map view
 		this._resetView(center, this._limitZoom(zoom));
 		return this;
@@ -177,6 +177,8 @@ L.Map = L.Class.extend({
 	},
 
 	invalidateSize: function() {
+		if (!this._loaded) return this;
+
 		var oldSize = this.getSize();
 		this._sizeChanged = true;
 		this._rawPanBy(oldSize.subtract(this.getSize()).divideBy(2));
@@ -426,13 +428,15 @@ L.Map = L.Class.extend({
 	},
 
 	_onMouseClick: function(e) {
-		if (this.dragging && this.dragging.moved()) { return; }
+		if (!this._loaded || (this.dragging && this.dragging.moved())) { return; }
 
 		this.fire('pre' + e.type);
 		this._fireMouseEvent(e);
 	},
 
 	_fireMouseEvent: function(e) {
+		if (!this._loaded) return;
+
 		var type = e.type;
 		type = (type == 'mouseenter' ? 'mouseover' : (type == 'mouseleave' ? 'mouseout' : type));
 		if (!this.hasEventListeners(type)) { return; }
@@ -487,4 +491,4 @@ L.Map = L.Class.extend({
 		return Math.max(min, Math.min(max, zoom));
 	}
 });
-
+
