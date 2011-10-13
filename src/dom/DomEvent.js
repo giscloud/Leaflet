@@ -8,7 +8,7 @@ L.DomEvent = {
 		var id = L.Util.stamp(fn),
 			key = '_leaflet_' + type + id;
 
-		if (obj[key]) { return; }
+		if (obj.hasOwnProperty ? obj.hasOwnProperty(key) : (key in obj)) { return; }
 
 		function handler(e) {
 			return fn.call(context || obj, e || L.DomEvent._getEvent());
