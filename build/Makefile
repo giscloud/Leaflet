@@ -1,3 +1,5 @@
+
+
 ../dist/leaflet.js: Makefile
 	java -jar ../lib/closure-compiler/compiler.jar \
 	--js ../src/Leaflet.js \
