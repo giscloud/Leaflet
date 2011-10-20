@@ -70,6 +70,7 @@
 	--js ../src/map/ext/Map.Control.js \
 	--js_output_file ../dist/leaflet.js
 
+
 debug:
 	java -jar ../lib/closure-compiler/compiler.jar --compilation_level WHITESPACE_ONLY --formatting PRETTY_PRINT \
 	--js ../src/Leaflet.js \
