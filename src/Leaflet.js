@@ -12,7 +12,7 @@
 
 		ROOT_URL: root.L_ROOT_URL || (function () {
 			var scripts = document.getElementsByTagName('script'),
-				leafletRe = /\/?leaflet\-?([\w\-]*)\.js\??/;
+				leafletRe = /\/?leaflet\-?([\w\-]*)\.js(?:\??[\w\d&=+%]*|$)/;
 
 			var i, len, src, matches;
 
