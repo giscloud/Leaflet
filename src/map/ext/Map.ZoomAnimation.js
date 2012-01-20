@@ -82,8 +82,8 @@ L.Map.include(!L.DomUtil.TRANSITION ? {} : {
 		for (id in this._layers) {
 			if (this._layers.hasOwnProperty(id)) {
 				layer = this._layers[id];
-				if (this.options.zoomAnimation && L.TileLayer && (layer instanceof L.TileLayer) &&
-					layer.getVisible() && !layer._container.transition) {
+				if (L.TileLayer && (layer instanceof L.TileLayer) &&
+					layer.getVisible() && !layer._container.transition && layer.options.zoomAnimation) {
 
                     if (layer.options.zoomAnimation) {
 					    layer._container.transition =
