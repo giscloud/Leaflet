@@ -4,27 +4,31 @@
 
 L.DomEvent = {
 	/* inpired by John Resig, Dean Edwards and YUI addEvent implementations */
-	addListener: function(/*HTMLElement*/ obj, /*String*/ type, /*Function*/ fn, /*Object*/ context) {
+	addListener: function (/*HTMLElement*/ obj, /*String*/ type, /*Function*/ fn, /*Object*/ context) {
 		var id = L.Util.stamp(fn),
 			key = '_leaflet_' + type + id;
 
-		if (obj.hasOwnProperty ? obj.hasOwnProperty(key) : (key in obj)) { return; }
-
-		function handler(e) {
-			return fn.call(context || obj, e || L.DomEvent._getEvent());
+		if (obj[key]) {
+			return this;
 		}
 
-		if (L.Browser.touch && (type == 'dblclick') && this.addDoubleTapListener) {
+		var handler = function (e) {
+			return fn.call(context || obj, e || L.DomEvent._getEvent());
+		};
+
+		if (L.Browser.touch && (type === 'dblclick') && this.addDoubleTapListener) {
 			this.addDoubleTapListener(obj, handler, id);
 		} else if ('addEventListener' in obj) {
-			if (type == 'mousewheel') {
+			if (type === 'mousewheel') {
 				obj.addEventListener('DOMMouseScroll', handler, false);
 				obj.addEventListener(type, handler, false);
-			} else if ((type == 'mouseenter') || (type == 'mouseleave')) {
+			} else if ((type === 'mouseenter') || (type === 'mouseleave')) {
 				var originalHandler = handler,
-					newType = (type == 'mouseenter' ? 'mouseover' : 'mouseout');
-				handler = function(e) {
-					if (!L.DomEvent._checkMouse(obj, e)) return;
+					newType = (type === 'mouseenter' ? 'mouseover' : 'mouseout');
+				handler = function (e) {
+					if (!L.DomEvent._checkMouse(obj, e)) {
+						return;
+					}
 					return originalHandler(e);
 				};
 				obj.addEventListener(newType, handler, false);
@@ -36,102 +40,126 @@ L.DomEvent = {
 		}
 
 		obj[key] = handler;
+
+		return this;
 	},
 
-	removeListener: function(/*HTMLElement*/ obj, /*String*/ type, /*Function*/ fn) {
+	removeListener: function (/*HTMLElement*/ obj, /*String*/ type, /*Function*/ fn) {
 		var id = L.Util.stamp(fn),
-			key = '_leaflet_' + type + id;
+			key = '_leaflet_' + type + id,
 			handler = obj[key];
 
-		if (!handler) { return; }
+		if (!handler) {
+			return;
+		}
 
-		if (L.Browser.touch && (type == 'dblclick') && this.removeDoubleTapListener) {
+		if (L.Browser.touch && (type === 'dblclick') && this.removeDoubleTapListener) {
 			this.removeDoubleTapListener(obj, id);
 		} else if ('removeEventListener' in obj) {
-			if (type == 'mousewheel') {
+			if (type === 'mousewheel') {
 				obj.removeEventListener('DOMMouseScroll', handler, false);
 				obj.removeEventListener(type, handler, false);
-			} else if ((type == 'mouseenter') || (type == 'mouseleave')) {
-				obj.removeEventListener((type == 'mouseenter' ? 'mouseover' : 'mouseout'), handler, false);
+			} else if ((type === 'mouseenter') || (type === 'mouseleave')) {
+				obj.removeEventListener((type === 'mouseenter' ? 'mouseover' : 'mouseout'), handler, false);
 			} else {
 				obj.removeEventListener(type, handler, false);
 			}
 		} else if ('detachEvent' in obj) {
 			obj.detachEvent("on" + type, handler);
 		}
-		delete obj[key];
+		obj[key] = null;
+
+		return this;
 	},
 
-	_checkMouse: function(el, e) {
+	_checkMouse: function (el, e) {
 		var related = e.relatedTarget;
 
-		if (!related) return true;
+		if (!related) {
+			return true;
+		}
 
 		try {
-			while (related && (related != el)) {
+			while (related && (related !== el)) {
 				related = related.parentNode;
 			}
-		} catch(err) { return false; }
+		} catch (err) {
+			return false;
+		}
 
-		return (related != el);
+		return (related !== el);
 	},
 
-	_getEvent: function()/*->Event*/ {
+	/*jshint noarg:false */ // evil magic for IE
+	_getEvent: function () {
 		var e = window.event;
 		if (!e) {
 			var caller = arguments.callee.caller;
 			while (caller) {
 				e = caller['arguments'][0];
-				if (e && Event == e.constructor) { break; }
+				if (e && window.Event === e.constructor) {
+					break;
+				}
 				caller = caller.caller;
 			}
 		}
 		return e;
 	},
+	/*jshint noarg:false */
 
-	stopPropagation: function(/*Event*/ e) {
+	stopPropagation: function (/*Event*/ e) {
 		if (e.stopPropagation) {
 			e.stopPropagation();
 		} else {
 			e.cancelBubble = true;
 		}
+		return this;
 	},
 
-	disableClickPropagation: function(/*HTMLElement*/ el) {
-		L.DomEvent.addListener(el, 'mousedown', L.DomEvent.stopPropagation);
-		L.DomEvent.addListener(el, 'mouseup', L.DomEvent.stopPropagation);
-		L.DomEvent.addListener(el, 'click', L.DomEvent.stopPropagation);
-		L.DomEvent.addListener(el, 'dblclick', L.DomEvent.stopPropagation);
+	disableClickPropagation: function (/*HTMLElement*/ el) {
+		return L.DomEvent
+			.addListener(el, L.Draggable.START, L.DomEvent.stopPropagation)
+			.addListener(el, 'mousedown', L.DomEvent.stopPropagation)
+			.addListener(el, 'mouseup', L.DomEvent.stopPropagation)
+			.addListener(el, 'click', L.DomEvent.stopPropagation)
+			.addListener(el, 'dblclick', L.DomEvent.stopPropagation);
 	},
 
-	preventDefault: function(/*Event*/ e) {
+	preventDefault: function (/*Event*/ e) {
 		if (e.preventDefault) {
 			e.preventDefault();
 		} else {
 			e.returnValue = false;
 		}
+		return this;
 	},
 
-	stop: function(e) {
-		L.DomEvent.preventDefault(e);
-		L.DomEvent.stopPropagation(e);
+	stop: function (e) {
+		return L.DomEvent
+			.preventDefault(e)
+			.stopPropagation(e);
 	},
 
-	getMousePosition: function(e, container) {
+	getMousePosition: function (e, container) {
 		var x = e.pageX ? e.pageX : e.clientX +
 				document.body.scrollLeft + document.documentElement.scrollLeft,
 			y = e.pageY ? e.pageY : e.clientY +
 					document.body.scrollTop + document.documentElement.scrollTop,
 			pos = new L.Point(x, y);
+
 		return (container ?
 					pos.subtract(L.DomUtil.getViewportOffset(container)) : pos);
 	},
 
-	getWheelDelta: function(e) {
+	getWheelDelta: function (e) {
 		var delta = 0;
-		if (e.wheelDelta) { delta = e.wheelDelta/120; }
-			if (e.detail) { delta = -e.detail/3; }
-			return delta;
+		if (e.wheelDelta) {
+			delta = e.wheelDelta / 120;
+		}
+		if (e.detail) {
+			delta = -e.detail / 3;
+		}
+		return delta;
 	}
 };
 
