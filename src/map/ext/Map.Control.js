@@ -1,50 +1,47 @@
 L.Map.include({
-	addControl: function(control) {
-		control.onAdd(this);
+	addControl: function (control) {
+		var container = control.onAdd(this);
+
+		control._container = container;
+		control._map = this;
 
 		var pos = control.getPosition(),
-			corner = this._controlCorners[pos],
-			container = control.getContainer();
-		
+			corner = this._controlCorners[pos];
+
 		L.DomUtil.addClass(container, 'leaflet-control');
-		
-		if (pos.indexOf('bottom') != -1) {
+
+		if (pos.indexOf('bottom') !== -1) {
 			corner.insertBefore(container, corner.firstChild);
 		} else {
 			corner.appendChild(container);
 		}
 		return this;
 	},
-	
-	removeControl: function(control) {
+
+	removeControl: function (control) {
 		var pos = control.getPosition(),
-			corner = this._controlCorners[pos],
-			container = control.getContainer();
-		
-		corner.removeChild(container);
-		
+			corner = this._controlCorners[pos];
+
+		corner.removeChild(control._container);
+		control._map = null;
+
 		if (control.onRemove) {
 			control.onRemove(this);
 		}
 		return this;
 	},
-	
-	_initControlPos: function() {
-		var corners = this._controlCorners = {},
-			classPart = 'leaflet-',
-			top = classPart + 'top',
-			bottom = classPart + 'bottom',
-			left = classPart + 'left',
-			right = classPart + 'right',
-			controlContainer = L.DomUtil.create('div', classPart + 'control-container', this._container);
-		
-		if (L.Browser.touch) {
-			controlContainer.className += ' ' + classPart + 'big-buttons';
-		}
-		
-		corners.topLeft = L.DomUtil.create('div', top + ' ' + left, controlContainer);
-		corners.topRight = L.DomUtil.create('div', top + ' ' + right, controlContainer);
-		corners.bottomLeft = L.DomUtil.create('div', bottom + ' ' + left, controlContainer);
-		corners.bottomRight = L.DomUtil.create('div', bottom + ' ' + right, controlContainer);
+
+	_initControlPos: function () {
+		var top = 'leaflet-top',
+			bottom = 'leaflet-bottom',
+			left = 'leaflet-left',
+			right = 'leaflet-right',
+			container = L.DomUtil.create('div', 'leaflet-control-container', this._container),
+			corners = this._controlCorners = {};
+
+		corners.topleft     = L.DomUtil.create('div', top    + ' ' + left,  container);
+		corners.topright    = L.DomUtil.create('div', top    + ' ' + right, container);
+		corners.bottomleft  = L.DomUtil.create('div', bottom + ' ' + left,  container);
+		corners.bottomright = L.DomUtil.create('div', bottom + ' ' + right, container);
 	}
 });
