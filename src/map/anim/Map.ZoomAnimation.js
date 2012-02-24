@@ -130,6 +130,7 @@ L.Map.include(!L.DomUtil.TRANSITION ? {} : {
 
 		for (i = 0, len = tiles.length; i < len; i++) {
 			tile = tiles[i];
+
 			if (!tile.complete) {
 				tile.onload = L.Util.falseFn;
 				tile.onerror = L.Util.falseFn;

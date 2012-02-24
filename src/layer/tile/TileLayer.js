@@ -23,7 +23,7 @@ L.TileLayer = L.Class.extend({
 		zoomReverse: false,
 
 		unloadInvisibleTiles: L.Browser.mobile,
-		updateWhenIdle: L.Browser.mobile,
+		updateWhenIdle: true,
 		reuseTiles: false
 	},
 
@@ -51,10 +51,9 @@ L.TileLayer = L.Class.extend({
 
 		// set up events
 		map.on('viewreset', this._resetCallback, this);
+		map.on('moveend', this._update, this);
 
-		if (this.options.updateWhenIdle) {
-			map.on('moveend', this._update, this);
-		} else {
+		if (!this.options.updateWhenIdle) {
 			this._limitedUpdate = L.Util.limitExecByInterval(this._update, 150, this);
 			map.on('move', this._limitedUpdate, this);
 		}
@@ -67,10 +66,9 @@ L.TileLayer = L.Class.extend({
 		map._panes.tilePane.removeChild(this._container);
 
 		map.off('viewreset', this._resetCallback, this);
+		map.off('moveend', this._update, this);
 
-		if (this.options.updateWhenIdle) {
-			map.off('moveend', this._update, this);
-		} else {
+		if (!this.options.updateWhenIdle) {
 			map.off('move', this._limitedUpdate, this);
 		}
 
@@ -178,10 +176,12 @@ L.TileLayer = L.Class.extend({
 		this._initContainer();
 	},
 
-	_update: function () {
+	_update: function (e) {
 		if (!this.options.visible) {
 			return;
 		}
+		if (this._map._panTransition && this._map._panTransition._inProgress) { return; }
+
 		var bounds   = this._map.getPixelBounds(),
 		    zoom     = this._map.getZoom(),
 		    tileSize = this.options.tileSize;
@@ -276,16 +276,21 @@ L.TileLayer = L.Class.extend({
 	},
 
 	_addTile: function (tilePoint, container) {
-		var zoom  = this._map.getZoom(),
-		    key   = tilePoint.x + ':' + tilePoint.y,
+		var tilePos = this._getTilePos(tilePoint),
+			zoom = this._map.getZoom(),
+		    key = tilePoint.x + ':' + tilePoint.y,
 		    limit = Math.pow(2, this._getOffsetZoom(zoom));
 
 		// wrap tile coordinates
 		if (!this.options.continuousWorld) {
 			if (!this.options.noWrap) {
 				tilePoint.x = ((tilePoint.x % limit) + limit) % limit;
+			} else if (tilePoint.x < 0 || tilePoint.x >= limit) {
+				this._tilesToLoad--;
+				return;
+			}
 
-			} else if (tilePoint.x < 0 || tilePoint.x >= limit || tilePoint.y < 0 || tilePoint.y >= limit) {
+			if (tilePoint.y < 0 || tilePoint.y >= limit) {
 				this._tilesToLoad--;
 				return;
 			}
@@ -293,7 +298,7 @@ L.TileLayer = L.Class.extend({
 
 		// get unused tile - or create a new tile
 		var tile = this._getTile();
-		L.DomUtil.setPosition(tile, this._getTilePos(tilePoint));
+		L.DomUtil.setPosition(tile, tilePos);
 
 		this._tiles[key] = tile;
 
@@ -366,6 +371,7 @@ L.TileLayer = L.Class.extend({
 		tile._layer  = this;
 		tile.onload  = this._tileOnLoad;
 		tile.onerror = this._tileOnError;
+
 		tile.src     = this.getTileUrl(tilePoint, zoom);
 	},
 
