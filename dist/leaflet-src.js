@@ -626,18 +626,6 @@ L.DomUtil = {
 		}
 	},
 
-	setVisible: function (element, onoff) {
-		if (onoff) {
-			L.DomUtil.removeClass(element, "leaflet-hidden");
-		} else {
-			L.DomUtil.addClass(element, "leaflet-hidden");
-		}
-	},
-
-	getVisible: function (element) {
-		return !L.DomUtil.hasClass(element, "leaflet-hidden");
-	},
-
 	//TODO refactor away this ugly translate/position mess
 
 	testProp: function (props) {
@@ -975,7 +963,7 @@ L.Map = L.Class.extend({
 		doubleClickZoom: true,
 		boxZoom: true,
 
-		inertia: true,
+		inertia: !L.Browser.android,
 		inertiaDeceleration: L.Browser.touch ? 3000 : 2000, // px/s^2
 		inertiaMaxSpeed:      L.Browser.touch ? 1500 : 1000, // px/s
 		inertiaThreshold:      L.Browser.touch ? 32   : 16, // ms
@@ -1455,16 +1443,7 @@ L.Map = L.Class.extend({
 			this._initialTopLeftPoint._add(L.DomUtil.getPosition(this._mapPane));
 		}
 
-		this._tileLayersToLoad = 0;
-		var layer, id;
-		for (id in this._layers) {
-			if (this._layers.hasOwnProperty(id)) {
-				layer = this._layers[id];
-				if (this.options.zoomAnimation && L.TileLayer && (layer instanceof L.TileLayer) && layer.getVisible()) {
-					this._tileLayersToLoad++;
-				}
-			}
-		}
+		this._tileLayersToLoad = this._tileLayersNum;
 
 		this.fire('viewreset', {hard: !preserveMapOffset});
 
@@ -1614,7 +1593,6 @@ L.Map = L.Class.extend({
 
 
 
-
 L.Projection.Mercator = {
 	MAX_LATITUDE: 85.0840591556,
 
@@ -1685,7 +1663,6 @@ L.CRS.EPSG3395 = L.Util.extend({}, L.CRS, {
 /*
  * L.TileLayer is used for standard xyz-numbered tile layers.
  */
-/*jshint expr: true */
 
 L.TileLayer = L.Class.extend({
 	includes: L.Mixin.Events,
@@ -1698,7 +1675,6 @@ L.TileLayer = L.Class.extend({
 		errorTileUrl: '',
 		attribution: '',
 		opacity: 1,
-		visible: true,
 		scheme: 'xyz',
 		continuousWorld: false,
 		noWrap: false,
@@ -1783,23 +1759,6 @@ L.TileLayer = L.Class.extend({
 		}
 	},
 
-	setVisible: function (onoff) {
-		this._container && L.DomUtil.setVisible(this._container, onoff);
-		this.options.visible = onoff;
-		this._update();
-		return this;
-	},
-
-	getVisible: function (onoff) {
-		return this.options.visible;
-	},
-
-	_setOpacity: function (opacity) {
-		if (opacity < 1) {
-			L.DomUtil.setOpacity(this._container, opacity);
-		}
-    },
-
 	_updateOpacity: function () {
 		L.DomUtil.setOpacity(this._container, this.options.opacity);
 	},
@@ -1851,9 +1810,6 @@ L.TileLayer = L.Class.extend({
 	},
 
 	_update: function (e) {
-		if (!this.options.visible) {
-			return;
-		}
 		if (this._map._panTransition && this._map._panTransition._inProgress) { return; }
 
 		var bounds   = this._map.getPixelBounds(),
@@ -1905,10 +1861,6 @@ L.TileLayer = L.Class.extend({
 		for (k = 0, len = this._tilesToLoad; k < len; k++) {
 			this._addTile(queue[k], fragment);
 		}
-
-		if (this._tilesToLoad === 0 && this._map._tileLayersToLoad > 0) {
-			this._map._tileLayersToLoad--;
-        }
 
 		this._container.appendChild(fragment);
 	},
@@ -2077,7 +2029,6 @@ L.TileLayer = L.Class.extend({
 		}
 	}
 });
-
 
 
 L.TileLayer.WMS = L.TileLayer.extend({
@@ -2352,7 +2303,6 @@ L.Marker = L.Class.extend({
 	options: {
 		icon: new L.Icon.Default(),
 		title: '',
-		visible: true,
 		clickable: true,
 		draggable: false,
 		zIndexOffset: 0,
@@ -2367,8 +2317,6 @@ L.Marker = L.Class.extend({
 	onAdd: function (map) {
 		this._map = map;
 
-		this._initIcon();
-
 		map.on('viewreset', this._reset, this);
 
 		this._initIcon();
@@ -2377,8 +2325,6 @@ L.Marker = L.Class.extend({
 
 	onRemove: function (map) {
 		this._removeIcon();
-
-		this._map = null;
 
 		// TODO move to Marker.Popup.js
 		if (this.closePopup) {
@@ -2414,24 +2360,12 @@ L.Marker = L.Class.extend({
 			this._removeIcon();
 		}
 
-		this._icon = this._shadow = null;
 		this.options.icon = icon;
 
 		if (this._map) {
 			this._initIcon();
 			this._reset();
 		}
-	},
-
-	setVisible: function (onoff) {
-		this._icon && L.DomUtil.setVisible(this._icon, onoff);
-		this._shadow && L.DomUtil.setVisible(this._shadow, onoff);
-		this.options.visible = onoff;
-		return this;
-	},
-
-	getVisible: function (onoff) {
-		return this.options.visible;
 	},
 
 	_initIcon: function () {
@@ -2539,7 +2473,7 @@ L.Marker = L.Class.extend({
 		L.DomUtil.setOpacity(this._icon, this.options.opacity);
 	}
 });
-
+
 
 L.DivIcon = L.Icon.extend({
 	options: {
@@ -4489,8 +4423,6 @@ L.DomEvent = {
 	disableClickPropagation: function (/*HTMLElement*/ el) {
 		return L.DomEvent
 			.addListener(el, L.Draggable.START, L.DomEvent.stopPropagation)
-			.addListener(el, 'mousedown', L.DomEvent.stopPropagation)
-			.addListener(el, 'mouseup', L.DomEvent.stopPropagation)
 			.addListener(el, 'click', L.DomEvent.stopPropagation)
 			.addListener(el, 'dblclick', L.DomEvent.stopPropagation);
 	},
@@ -4810,12 +4742,14 @@ L.Map.Drag = L.Handler.extend({
 	_onDragEnd: function () {
 		var map = this._map,
 			options = map.options,
-			delay = +new Date() - this._lastTime;
+			delay = +new Date() - this._lastTime,
+			
+			noInertia = !options.inertia ||
+					delay > options.inertiaThreshold ||
+					typeof this._positions[0] === 'undefined';
 
-		if (!options.inertia || delay > options.inertiaThreshold) {
-			map
-				.fire('moveend')
-				.fire('dragend');
+		if (noInertia) {
+			map.fire('moveend');
 
 		} else {
 
@@ -4839,12 +4773,13 @@ L.Map.Drag = L.Handler.extend({
 			L.Util.requestAnimFrame(L.Util.bind(function () {
 				this._map.panBy(offset, panOptions);
 			}, this));
+		}
 
+		map.fire('dragend');
 
-			if (options.maxBounds) {
-				// TODO predrag validation instead of animation
-				L.Util.requestAnimFrame(this._panInsideMaxBounds, map, true, map._container);
-			}
+		if (options.maxBounds) {
+			// TODO predrag validation instead of animation
+			L.Util.requestAnimFrame(this._panInsideMaxBounds, map, true, map._container);
 		}
 	},
 
@@ -5571,6 +5506,103 @@ L.Control.Attribution = L.Control.extend({
 });
 
 
+L.Control.Scale = L.Control.extend({
+	options: {
+		position: 'bottomleft',
+		maxWidth: 100,
+		metric: true,
+		imperial: true,
+		updateWhenIdle: false
+	},
+
+	onAdd: function (map) {
+		this._map = map;
+
+		var className = 'leaflet-control-scale',
+		    container = L.DomUtil.create('div', className),
+		    options = this.options;
+
+		if (options.metric) {
+			this._mScale = L.DomUtil.create('div', className + '-line', container);
+		}
+		if (options.imperial) {
+			this._iScale = L.DomUtil.create('div', className + '-line', container);
+		}
+
+		map.on(options.updateWhenIdle ? 'moveend' : 'move', this._update, this);
+		this._update();
+
+		return container;
+	},
+
+	onRemove: function (map) {
+		map.off(this.options.updateWhenIdle ? 'moveend' : 'move', this._update, this);
+	},
+
+	_update: function () {
+		var bounds = this._map.getBounds(),
+		    centerLat = bounds.getCenter().lat,
+
+		    left = new L.LatLng(centerLat, bounds.getSouthWest().lng),
+		    right = new L.LatLng(centerLat, bounds.getNorthEast().lng),
+
+		    size = this._map.getSize(),
+		    options = this.options,
+
+		    maxMeters = left.distanceTo(right) * (options.maxWidth / size.x);
+
+		if (options.metric) {
+			this._updateMetric(maxMeters);
+		}
+
+		if (options.imperial) {
+			this._updateImperial(maxMeters);
+		}
+	},
+
+	_updateMetric: function (maxMeters) {
+		var meters = this._getRoundNum(maxMeters);
+
+		this._mScale.style.width = this._getScaleWidth(meters / maxMeters) + 'px';
+		this._mScale.innerHTML = meters < 1000 ? meters + ' m' : (meters / 1000) + ' km';
+	},
+
+	_updateImperial: function (maxMeters) {
+		var maxFeet = maxMeters * 3.2808399,
+			scale = this._iScale,
+			maxMiles, miles, feet;
+
+		if (maxFeet > 5280) {
+			maxMiles = maxFeet / 5280;
+			miles = this._getRoundNum(maxMiles);
+
+			scale.style.width = this._getScaleWidth(miles / maxMiles) + 'px';
+			scale.innerHTML = miles + ' mi';
+
+		} else {
+			feet = this._getRoundNum(maxFeet);
+
+			scale.style.width = this._getScaleWidth(feet / maxFeet) + 'px';
+			scale.innerHTML = feet + ' ft';
+		}
+	},
+
+	_getScaleWidth: function (ratio) {
+		return Math.round(this.options.maxWidth * ratio) - 10;
+	},
+
+	_getRoundNum: function (num) {
+		var pow10 = Math.pow(10, (Math.floor(num) + '').length - 1),
+		    d = num / pow10;
+
+		return pow10 * (d >= 10 ?
+			10 :
+			d >= 5 ?
+				5 :
+				d >= 2 ? 2 : 1);
+	}
+});
+
 
 L.Control.Layers = L.Control.extend({
 	options: {
@@ -5873,8 +5905,8 @@ L.Transition = L.Transition.extend({
 			this._el.style[L.Transition.PROPERTY] = 'none';
 
 			this.fire('step');
-			
-			if (e instanceof window.Event) {
+
+			if (e && e.type) {
 				this.fire('end');
 			}
 		}
@@ -6046,7 +6078,7 @@ L.Map.include(!(L.Transition && L.Transition.implemented()) ? {} : {
 		if (!this._panTransition) {
 			this._panTransition = new L.Transition(this._mapPane);
 
-			//this._panTransition.on('step', this._onPanTransitionStep, this);
+			this._panTransition.on('step', this._onPanTransitionStep, this);
 			this._panTransition.on('end', this._onPanTransitionEnd, this);
 		}
 
