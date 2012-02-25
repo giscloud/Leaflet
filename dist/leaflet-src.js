@@ -978,7 +978,7 @@ L.Map = L.Class.extend({
 		boxZoom: true,
 
 		inertia: true,
-		inertiaDecceleration: L.Browser.touch ? 3000 : 2000, // px/s^2
+		inertiaDeceleration: L.Browser.touch ? 3000 : 2000, // px/s^2
 		inertiaMaxSpeed:      L.Browser.touch ? 1500 : 1000, // px/s
 		inertiaThreshold:      L.Browser.touch ? 32   : 16, // ms
 
@@ -1709,7 +1709,7 @@ L.TileLayer = L.Class.extend({
 		zoomReverse: false,
 
 		unloadInvisibleTiles: L.Browser.mobile,
-		updateWhenIdle: true,
+		updateWhenIdle: L.Browser.mobile,
 		reuseTiles: false
 	},
 
@@ -4841,11 +4841,8 @@ L.Map.Drag = L.Handler.extend({
 			options = map.options,
 			delay = +new Date() - this._lastTime;
 
-		if (!options.inertia || delay > options.inertiaTreshold) {
-			map
-				.fire('moveend')
-				.fire('dragend');
-
+		if (!options.inertia || delay > options.inertiaThreshold || this._positions[0] === undefined) {
+			map.fire('moveend');
 		} else {
 
 			var direction = this._lastPos.subtract(this._positions[0]),
@@ -4857,11 +4854,11 @@ L.Map.Drag = L.Handler.extend({
 				limitedSpeed = Math.min(options.inertiaMaxSpeed, speed),
 				limitedSpeedVector = speedVector.multiplyBy(limitedSpeed / speed),
 
-				deccelerationDuration = limitedSpeed / options.inertiaDecceleration,
-				offset = limitedSpeedVector.multiplyBy(-deccelerationDuration / 2).round();
+				decelerationDuration = limitedSpeed / options.inertiaDeceleration,
+				offset = limitedSpeedVector.multiplyBy(-decelerationDuration / 2).round();
 
 			var panOptions = {
-				duration: deccelerationDuration,
+				duration: decelerationDuration,
 				easing: 'ease-out'
 			};
 
@@ -4875,6 +4872,7 @@ L.Map.Drag = L.Handler.extend({
 				L.Util.requestAnimFrame(this._panInsideMaxBounds, map, true, map._container);
 			}
 		}
+		map.fire('dragend');
 	},
 
 	_panInsideMaxBounds: function () {
@@ -5021,8 +5019,8 @@ L.Map.TouchZoom = L.Handler.extend({
 
 		if (!e.touches || e.touches.length !== 2 || map._animatingZoom || this._zooming) { return; }
 
-		var p1 = map.mouseEventToContainerPoint(e.touches[0]),
-			p2 = map.mouseEventToContainerPoint(e.touches[1]),
+		var p1 = map.mouseEventToLayerPoint(e.touches[0]),
+			p2 = map.mouseEventToLayerPoint(e.touches[1]),
 			viewCenter = map.containerPointToLayerPoint(map.getSize().divideBy(2));
 
 		this._startCenter = p1.add(p2).divideBy(2, true);
@@ -5045,8 +5043,8 @@ L.Map.TouchZoom = L.Handler.extend({
 
 		var map = this._map;
 
-		var p1 = map.mouseEventToContainerPoint(e.touches[0]),
-			p2 = map.mouseEventToContainerPoint(e.touches[1]);
+		var p1 = map.mouseEventToLayerPoint(e.touches[0]),
+			p2 = map.mouseEventToLayerPoint(e.touches[1]);
 
 		this._scale = p1.distanceTo(p2) / this._startDist;
 		this._delta = p1.add(p2).divideBy(2, true).subtract(this._startCenter);
@@ -5919,8 +5917,8 @@ L.Transition = L.Transition.extend({
 			this._el.style[L.Transition.PROPERTY] = 'none';
 
 			this.fire('step');
-			
-			if (e instanceof window.Event) {
+
+			if (e instanceof Object) {
 				this.fire('end');
 			}
 		}
