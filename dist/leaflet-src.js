@@ -977,7 +977,7 @@ L.Map = L.Class.extend({
 		doubleClickZoom: true,
 		boxZoom: true,
 
-		inertia: true,
+		inertia: !L.Browser.android,
 		inertiaDeceleration: L.Browser.touch ? 3000 : 2000, // px/s^2
 		inertiaMaxSpeed:      L.Browser.touch ? 1500 : 1000, // px/s
 		inertiaThreshold:      L.Browser.touch ? 32   : 16, // ms
@@ -4839,10 +4839,15 @@ L.Map.Drag = L.Handler.extend({
 	_onDragEnd: function () {
 		var map = this._map,
 			options = map.options,
-			delay = +new Date() - this._lastTime;
+			delay = +new Date() - this._lastTime,
+			
+			noInertia = !options.inertia ||
+					delay > options.inertiaThreshold ||
+					typeof this._positions[0] === 'undefined';
 
-		if (!options.inertia || delay > options.inertiaThreshold || this._positions[0] === undefined) {
+		if (noInertia) {
 			map.fire('moveend');
+
 		} else {
 
 			var direction = this._lastPos.subtract(this._positions[0]),
@@ -4865,14 +4870,14 @@ L.Map.Drag = L.Handler.extend({
 			L.Util.requestAnimFrame(L.Util.bind(function () {
 				this._map.panBy(offset, panOptions);
 			}, this));
-
-
-			if (options.maxBounds) {
-				// TODO predrag validation instead of animation
-				L.Util.requestAnimFrame(this._panInsideMaxBounds, map, true, map._container);
-			}
 		}
+
 		map.fire('dragend');
+
+		if (options.maxBounds) {
+			// TODO predrag validation instead of animation
+			L.Util.requestAnimFrame(this._panInsideMaxBounds, map, true, map._container);
+		}
 	},
 
 	_panInsideMaxBounds: function () {
@@ -5918,7 +5923,7 @@ L.Transition = L.Transition.extend({
 
 			this.fire('step');
 
-			if (e instanceof Object) {
+			if (e && e.type) {
 				this.fire('end');
 			}
 		}
