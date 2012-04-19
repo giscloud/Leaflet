@@ -58,7 +58,7 @@ L.Util = {
 	},
 
 	bind: function (fn, obj) { // (Function, Object) -> Function
-		var args = Array.prototype.slice.call(arguments, 2);
+		var args = arguments.length > 2 ? Array.prototype.slice.call(arguments, 2) : null;
 		return function () {
 			return fn.apply(obj, args || arguments);
 		};
@@ -619,7 +619,7 @@ L.DomUtil = {
 
 	setOpacity: function (el, value) {
 		if (L.Browser.ie) {
-			el.style.filter = 'alpha(opacity=' + Math.round(value * 100) + ')';
+		    el.style.filter = value !== 1 ? 'alpha(opacity=' + Math.round(value * 100) + ')' : '';
 		} else {
 			el.style.opacity = value;
 		}
@@ -3811,7 +3811,7 @@ L.Polyline = L.Path.extend({
 	},
 
 	_initEvents: function () {
-		L.Polyline.superclass._initEvents.call(this);
+		L.Path.prototype._initEvents.call(this);
 	},
 
 	_getPathPartStr: function (points) {
@@ -4144,6 +4144,9 @@ L.Circle = L.Path.extend({
 	},
 
 	_checkIfEmpty: function () {
+		if (!this._map) {
+			return false;
+		}
 		var vp = this._map._pathViewport,
 			r = this._radius,
 			p = this._point;
