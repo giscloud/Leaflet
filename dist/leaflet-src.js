@@ -155,6 +155,7 @@ L.Util = {
 		}
 		return '?' + params.join('&');
 	},
+    
 
 	template: function (str, data) {
 		return str.replace(/\{ *([\w_]+) *\}/g, function (str, key) {
@@ -649,6 +650,12 @@ L.DomUtil = {
 		}
 		return false;
 	},
+    
+    getRotateString: function (degrees) {
+        return L.DomUtil.ROTATE_OPEN +
+				degrees + 'deg' +
+				L.DomUtil.ROTATE_CLOSE;
+    },
 
 	getTranslateString: function (point) {
 		return L.DomUtil.TRANSLATE_OPEN +
@@ -663,16 +670,39 @@ L.DomUtil = {
 
 		return preTranslateStr + scaleStr + postTranslateStr;
 	},
+    
+    setRotation: function (el, degrees) {
+        el._leaflet_rot = degrees;
+        el.style[L.DomUtil.TRANSFORM] =  L.DomUtil.getTransformString(el);
+    },
 
 	setPosition: function (el, point) {
 		el._leaflet_pos = point;
 		if (L.Browser.webkit3d) {
-			el.style[L.DomUtil.TRANSFORM] =  L.DomUtil.getTranslateString(point);
+			el.style[L.DomUtil.TRANSFORM] =  L.DomUtil.getTransformString(el);
 			el.style['-webkit-backface-visibility'] = 'hidden';
 		} else {
 			el.style.left = point.x + 'px';
 			el.style.top = point.y + 'px';
 		}
+	},
+    
+    getTransformString: function (el) {
+        var arr = [];
+        
+        if (el._leaflet_pos && L.Browser.webkit3d) {
+            arr.push(L.DomUtil.getTranslateString(el._leaflet_pos));
+        }
+        
+        if (el._leaflet_rot) {
+            arr.push(L.DomUtil.getRotateString(el._leaflet_rot));
+        }
+        
+        return arr.join(' ');
+    },
+    
+    getRotation: function (el) {
+		return el._leaflet_rot;
 	},
 
 	getPosition: function (el) {
@@ -683,7 +713,10 @@ L.DomUtil = {
 L.Util.extend(L.DomUtil, {
 	TRANSITION: L.DomUtil.testProp(['transition', 'webkitTransition', 'OTransition', 'MozTransition', 'msTransition']),
 	TRANSFORM: L.DomUtil.testProp(['transformProperty', 'WebkitTransform', 'OTransform', 'MozTransform', 'msTransform']),
-
+    
+    ROTATE_OPEN: 'rotate(',
+    ROTATE_CLOSE: ')',
+    
 	TRANSLATE_OPEN: 'translate' + (L.Browser.webkit3d ? '3d(' : '('),
 	TRANSLATE_CLOSE: L.Browser.webkit3d ? ',0)' : ')'
 });
@@ -2257,6 +2290,7 @@ L.Icon = L.Class.extend({
 		popupAnchor: (Point) (if not specified, popup opens in the anchor point)
 		shadowUrl: (Point) (no shadow by default)
 		shadowSize: (Point)
+        rotation: (Number) 0
 		*/
 		className: ''
 	},
@@ -2282,7 +2316,8 @@ L.Icon = L.Class.extend({
 	_setIconStyles: function (img, name) {
 		var options = this.options,
 			size = options[name + 'Size'],
-			anchor = options.iconAnchor;
+			anchor = options.iconAnchor,
+            rotation = options.rotation;
 
 		if (!anchor && size) {
 			anchor = size.divideBy(2, true);
@@ -2291,7 +2326,7 @@ L.Icon = L.Class.extend({
 		if (name === 'shadow' && anchor && options.shadowOffset) {
 			anchor._add(options.shadowOffset);
 		}
-
+        
 		img.className = 'leaflet-marker-' + name + ' ' + options.className;
 
 		if (anchor) {
@@ -2324,7 +2359,8 @@ L.Icon.Default = L.Icon.extend({
 		iconSize: new L.Point(25, 41),
 		iconAnchor: new L.Point(13, 41),
 		popupAnchor: new L.Point(0, -33),
-
+        rotation: 0,
+        
 		shadowUrl: L.ROOT_URL + 'images/marker-shadow.png',
 		shadowSize: new L.Point(41, 41)
 	}
@@ -2346,7 +2382,8 @@ L.Marker = L.Class.extend({
 		clickable: true,
 		draggable: false,
 		zIndexOffset: 0,
-		opacity: 1
+		opacity: 1,
+        rotation: 0
 	},
 
 	initialize: function (latlng, options) {
@@ -2531,10 +2568,130 @@ L.Marker = L.Class.extend({
 
 	_updateOpacity: function (opacity) {
 		L.DomUtil.setOpacity(this._icon, this.options.opacity);
-	}
+	},
+    
+    setRotation: function (degrees) {
+        var icon = this._icon;
+        
+        this.options.rotation = degrees;
+        
+        if (icon.children && icon.children.length) {
+            L.DomUtil.setRotation(this._icon.children[0], degrees);
+        } else {
+            L.DomUtil.setRotation(this._icon, degrees);
+        }
+    },
+    
+    getRotation: function () {
+        return this.options.rotation;
+    }
 });
 
 
+
+L.Icon.Label = L.Icon.extend({
+	options: {
+		/*
+		labelAnchor: (Point) (top left position of the label within the wrapper, default is right)
+		wrapperAnchor: (Point) (position of icon and label relative to Lat/Lng)
+		iconAnchor: (Point) (top left position of icon within wrapper)
+		labelText: (String) (label's text component, if this is null the element will not be created)
+		*/
+		/* Icon options:
+		iconUrl: (String) (required)
+		iconSize: (Point) (can be set through CSS)
+		iconAnchor: (Point) (centered by default if size is specified, can be set in CSS with negative margins)
+		popupAnchor: (Point) (if not specified, popup opens in the anchor point)
+		shadowUrl: (Point) (no shadow by default)
+		shadowSize: (Point)
+		*/
+		labelClassName: ''
+	},
+	
+	initialize: function (options) {
+		L.Util.setOptions(this, options);
+		L.Icon.prototype.initialize.call(this, this.options);
+	},
+
+	createIcon: function () {
+		return this._createLabel(L.Icon.prototype._createIcon.call(this, 'icon'));
+	},
+	
+	createShadow: function () {
+		if (!this.options.shadowUrl) {
+			return null;
+		}
+		var shadow = L.Icon.prototype._createIcon.call(this, 'shadow');
+		//need to reposition the shadow
+		if (shadow) {
+			shadow.style.marginLeft = (-this.options.wrapperAnchor.x) + 'px';
+			shadow.style.marginTop = (-this.options.wrapperAnchor.y) + 'px';
+		}
+		return shadow;
+	},
+
+	_createLabel: function (img) {
+		if (!this.options.labelText) {
+			return img;
+		}
+
+		var wrapper = document.createElement('div'),
+			label = document.createElement('span');
+
+		label.className = 'leaflet-marker-iconlabel ' + this.options.labelClassName;
+
+		label.innerHTML = this.options.labelText;
+
+		//set up label's styles
+		label.style.marginLeft = this.options.labelAnchor.x + 'px';
+		label.style.marginTop = this.options.labelAnchor.y + 'px';
+		
+		//set up wrapper anchor
+		wrapper.style.marginLeft = (-this.options.wrapperAnchor.x) + 'px';
+		wrapper.style.marginTop = (-this.options.wrapperAnchor.y) + 'px';
+
+		wrapper.className = 'leaflet-marker-icon-wrapper';
+		
+		//reset icons margins (as super makes them -ve)
+		img.style.marginLeft = this.options.iconAnchor.x + 'px';
+		img.style.marginTop = this.options.iconAnchor.y + 'px';
+		
+		wrapper.appendChild(img);
+		wrapper.appendChild(label);
+
+		return wrapper;
+	}
+});
+
+L.Icon.Label.Default = L.Icon.Label.extend({
+	options: {
+		//This is the top left position of the label within the wrapper. By default it will display at the right
+		//middle position of the default icon. x = width of icon + padding
+		//If the icon height is greater than the label height you will need to set the y value.
+		//y = (icon height - label height) / 2
+		labelAnchor: new L.Point(29, 8),
+		
+		//This is the position of the wrapper div. Use this to position icon + label relative to the Lat/Lng.
+		//By default the point of the default icon is anchor
+		wrapperAnchor: new L.Point(13, 41),
+		
+		//This is now the top left position of the icon within the wrapper.
+		//If the label height is greater than the icon you will need to set the y value.
+		//y = (label height - icon height) / 2
+		iconAnchor: new L.Point(0, 0),
+		
+		//label's text component, if this is null the element will not be created
+		labelText: null,
+		
+		/* From L.Icon.Default */
+		iconUrl: L.ROOT_URL + 'images/marker.png',
+		iconSize: new L.Point(25, 41),
+		popupAnchor: new L.Point(0, -33),
+
+		shadowUrl: L.ROOT_URL + 'images/marker-shadow.png',
+		shadowSize: new L.Point(41, 41)
+	}
+});
 
 L.DivIcon = L.Icon.extend({
 	options: {
