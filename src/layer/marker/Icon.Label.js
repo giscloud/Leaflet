@@ -20,6 +20,7 @@ L.Icon.Label = L.Icon.extend({
 	initialize: function (options) {
 		L.Util.setOptions(this, options);
 		L.Icon.prototype.initialize.call(this, this.options);
+        this._label = null;
 	},
 
 	createIcon: function () {
@@ -38,19 +39,47 @@ L.Icon.Label = L.Icon.extend({
 		}
 		return shadow;
 	},
+    
+    setLabelVisible: function (onoff) {
+        L.DomUtil.setVisible(this._label, onoff);
+    },
+    
+    getLabelVisible: function () {
+        return L.DomUtil.getVisible(this._label);
+    },
+    
+    setLabelText: function (text) {
+        this.options.labelText = text;
+        this.refreshLabel();
+    },
+    
+    getLabelText: function () {
+        return this.options.labelText;
+    },
+    
+    refreshLabel: function () {
+        if (this.options.labelText) {
+            this._label.innerHTML = this.options.labelText;
+            this.setLabelVisible(true);
+        } else {
+            this._label.innerHTML = "&nbsp";
+            this.setLabelVisible(false);
+        }
+    },
 
 	_createLabel: function (img) {
-		if (!this.options.labelText) {
-			return img;
-		}
-
 		var wrapper = document.createElement('div'),
 			label = document.createElement('span');
 
 		label.className = 'leaflet-marker-iconlabel ' + this.options.labelClassName;
 
-		label.innerHTML = this.options.labelText;
-
+		if (this.options.labelText) {
+            label.innerHTML = this.options.labelText;
+        } else {
+            label.innerHTML = "&nbsp;";
+            L.DomUtil.setVisible(label, false);
+        }
+        
 		//set up label's styles
 		label.style.marginLeft = this.options.labelAnchor.x + 'px';
 		label.style.marginTop = this.options.labelAnchor.y + 'px';
@@ -68,6 +97,8 @@ L.Icon.Label = L.Icon.extend({
 		wrapper.appendChild(img);
 		wrapper.appendChild(label);
 
+        this._label = label;
+        
 		return wrapper;
 	}
 });

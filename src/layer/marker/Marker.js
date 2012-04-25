@@ -91,6 +91,30 @@ L.Marker = L.Class.extend({
 	getVisible: function (onoff) {
 		return this.options.visible;
 	},
+    
+    setLabelVisible: function (onoff) {
+        if (this.options.icon && this.options.icon instanceof L.Icon.Label) {
+            this.options.icon.setLabelVisible(onoff);
+        }
+    },
+    
+    getLabelVisible: function () {
+        if (this.options.icon && this.options.icon instanceof L.Icon.Label) {
+            return this.options.icon.getLabelVisible();
+        }
+    },
+    
+    setLabelText: function (text) {
+        if (this.options.icon && this.options.icon instanceof L.Icon.Label) {
+            this.options.icon.setLabelText(text);
+        }
+    },
+    
+    getLabelText: function () {
+        if (this.options.icon && this.options.icon instanceof L.Icon.Label) {
+            return this.options.icon.getLabelText();
+        }
+    },
 
 	_initIcon: function () {
 		var options = this.options;

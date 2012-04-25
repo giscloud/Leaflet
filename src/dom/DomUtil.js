@@ -150,6 +150,7 @@ L.DomUtil = {
 	},
     
     setRotation: function (el, degrees) {
+        degrees = (degrees >= 0) ? (degrees % 360) : (360 + degrees % 360);
         el._leaflet_rot = degrees;
         el.style[L.DomUtil.TRANSFORM] =  L.DomUtil.getTransformString(el);
     },

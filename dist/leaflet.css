@@ -377,4 +377,7 @@ a.leaflet-active {
 	padding: 4px 6px;
 	white-space: nowrap;
 	}
-}
+
+.leaflet-hidden {
+    display: none !important;
+    }
