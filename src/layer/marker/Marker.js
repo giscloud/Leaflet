@@ -13,7 +13,8 @@ L.Marker = L.Class.extend({
 		clickable: true,
 		draggable: false,
 		zIndexOffset: 0,
-		opacity: 1
+		opacity: 1,
+        rotation: 0
 	},
 
 	initialize: function (latlng, options) {
@@ -90,6 +91,30 @@ L.Marker = L.Class.extend({
 	getVisible: function (onoff) {
 		return this.options.visible;
 	},
+    
+    setLabelVisible: function (onoff) {
+        if (this.options.icon && this.options.icon instanceof L.Icon.Label) {
+            this.options.icon.setLabelVisible(onoff);
+        }
+    },
+    
+    getLabelVisible: function () {
+        if (this.options.icon && this.options.icon instanceof L.Icon.Label) {
+            return this.options.icon.getLabelVisible();
+        }
+    },
+    
+    setLabelText: function (text) {
+        if (this.options.icon && this.options.icon instanceof L.Icon.Label) {
+            this.options.icon.setLabelText(text);
+        }
+    },
+    
+    getLabelText: function () {
+        if (this.options.icon && this.options.icon instanceof L.Icon.Label) {
+            return this.options.icon.getLabelText();
+        }
+    },
 
 	_initIcon: function () {
 		var options = this.options;
@@ -198,6 +223,22 @@ L.Marker = L.Class.extend({
 
 	_updateOpacity: function (opacity) {
 		L.DomUtil.setOpacity(this._icon, this.options.opacity);
-	}
+	},
+    
+    setRotation: function (degrees) {
+        var icon = this._icon;
+        
+        this.options.rotation = degrees;
+        
+        if (icon.children && icon.children.length) {
+            L.DomUtil.setRotation(this._icon.children[0], degrees);
+        } else {
+            L.DomUtil.setRotation(this._icon, degrees);
+        }
+    },
+    
+    getRotation: function () {
+        return this.options.rotation;
+    }
 });
 
