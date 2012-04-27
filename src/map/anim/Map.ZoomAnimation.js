@@ -140,6 +140,10 @@ L.Map.include(!L.DomUtil.TRANSITION ? {} : {
 				tile.onerror = L.Util.falseFn;
 				tile.src = L.Util.emptyImageUrl;
 
+				if (tile._layer._tilesToLoad) {
+					tile._layer._tilesToLoad--;
+				}
+
 				tile.parentNode.removeChild(tile);
 			}
 		}

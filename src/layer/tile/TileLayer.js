@@ -42,6 +42,7 @@ L.TileLayer = L.Class.extend({
 	onAdd: function (map, insertAtTheBottom) {
 		this._map = map;
 		this._insertAtTheBottom = insertAtTheBottom;
+		this._tilesToLoad = 0;
 
 		// create a container div for tiles
 		this._initContainer();
@@ -227,10 +228,10 @@ L.TileLayer = L.Class.extend({
 
 		var fragment = document.createDocumentFragment();
 
-		this._tilesToLoad = queue.length;
+		this._tilesToLoad += queue.length;
 
 		var k, len;
-		for (k = 0, len = this._tilesToLoad; k < len; k++) {
+		for (k = 0, len = queue.length; k < len; k++) {
 			this._addTile(queue[k], fragment);
 		}
 
@@ -413,6 +414,8 @@ L.TileLayer = L.Class.extend({
 			tile: this,
 			url: this.src
 		});
+
+		layer._tilesToLoad--;
 
 		var newUrl = layer.options.errorTileUrl;
 		if (newUrl) {
