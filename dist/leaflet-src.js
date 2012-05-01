@@ -1771,18 +1771,18 @@ L.TileLayer = L.Class.extend({
 	setOpacity: function (opacity) {
 		this.options.opacity = opacity;
 
-		if (this._map) {
+		if (!L.Browser.webkit && this._map) {
 			this._updateOpacity();
 		}
 
-		// stupid webkit hack to force redrawing of tiles
+		// stupid webkit hack of setting opacity per tile
 		var i,
 			tiles = this._tiles;
 
 		if (L.Browser.webkit) {
 			for (i in tiles) {
 				if (tiles.hasOwnProperty(i)) {
-					tiles[i].style.webkitTransform += ' translate(0,0)';
+					L.DomUtil.setOpacity(tiles[i], opacity);
 				}
 			}
 		}
@@ -1798,12 +1798,6 @@ L.TileLayer = L.Class.extend({
 	getVisible: function (onoff) {
 		return this.options.visible;
 	},
-
-	_setOpacity: function (opacity) {
-		if (opacity < 1) {
-			L.DomUtil.setOpacity(this._container, opacity);
-		}
-    },
 
 	_updateOpacity: function () {
 		L.DomUtil.setOpacity(this._container, this.options.opacity);
@@ -1827,7 +1821,7 @@ L.TileLayer = L.Class.extend({
 				tilePane.appendChild(this._container);
 			}
 
-			if (this.options.opacity < 1) {
+			if (!L.Browser.webkit && this.options.opacity < 1) {
 				this._updateOpacity();
 			}
 		}
@@ -1982,6 +1976,9 @@ L.TileLayer = L.Class.extend({
 
 		// get unused tile - or create a new tile
 		var tile = this._getTile();
+		if (L.Browser.webkit && this.options.opacity < 1) {
+			L.DomUtil.setOpacity(tile, this.options.opacity);
+		}
 		L.DomUtil.setPosition(tile, tilePos);
 
 		this._tiles[key] = tile;
