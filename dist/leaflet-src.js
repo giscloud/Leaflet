@@ -1713,7 +1713,11 @@ L.TileLayer = L.Class.extend({
 	initialize: function (url, options) {
 		L.Util.setOptions(this, options);
 
-		this._url = url;
+		if (typeof url === 'string') {
+			this._url = [url];
+		} else {
+			this._url = url;
+		}
 
 		var subdomains = this.options.subdomains;
 
@@ -2010,9 +2014,10 @@ L.TileLayer = L.Class.extend({
 	getTileUrl: function (tilePoint, zoom) {
 		var subdomains = this.options.subdomains,
 			index = (tilePoint.x + tilePoint.y) % subdomains.length,
+			tileserverIndex = (tilePoint.x + tilePoint.y) % this._url.length,
 			s = this.options.subdomains[index];
 
-		return L.Util.template(this._url, L.Util.extend({
+		return L.Util.template(this._url[tileserverIndex], L.Util.extend({
 			s: s,
 			z: this._getOffsetZoom(zoom),
 			x: tilePoint.x,
