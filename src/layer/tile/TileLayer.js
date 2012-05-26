@@ -20,6 +20,7 @@ L.TileLayer = L.Class.extend({
 		noWrap: false,
 		zoomOffset: 0,
 		zoomReverse: false,
+		detectRetina: false,
 
 		unloadInvisibleTiles: L.Browser.mobile,
 		updateWhenIdle: L.Browser.mobile,
@@ -27,7 +28,19 @@ L.TileLayer = L.Class.extend({
 	},
 
 	initialize: function (url, options) {
-		L.Util.setOptions(this, options);
+		options = L.Util.setOptions(this, options);
+
+		// detecting retina displays, adjusting tileSize and zoom levels
+		if (options.detectRetina && window.devicePixelRatio > 1 && options.maxZoom > 0) {
+
+			options.tileSize = Math.floor(options.tileSize / 2);
+			options.zoomOffset++;
+
+			if (options.minZoom > 0) {
+				options.minZoom--;
+			}
+			this.options.maxZoom--;
+		}
 
 		this._url = url;
 
@@ -363,6 +376,13 @@ L.TileLayer = L.Class.extend({
 		tile.src     = this.getTileUrl(tilePoint, zoom);
 	},
 
+    _tileLoaded: function () {
+        this._tilesToLoad--;
+        if (!this._tilesToLoad) {
+            this.fire('load');
+        }
+    },
+
 	_tileOnLoad: function (e) {
 		var layer = this._layer;
 
@@ -373,10 +393,7 @@ L.TileLayer = L.Class.extend({
 			url: this.src
 		});
 
-		layer._tilesToLoad--;
-		if (!layer._tilesToLoad) {
-			layer.fire('load');
-		}
+        layer._tileLoaded();
 	},
 
 	_tileOnError: function (e) {
@@ -391,6 +408,8 @@ L.TileLayer = L.Class.extend({
 		if (newUrl) {
 			this.src = newUrl;
 		}
-	}
+
+        layer._tileLoaded();
+    }
 });
 

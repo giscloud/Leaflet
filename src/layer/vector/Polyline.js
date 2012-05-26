@@ -1,4 +1,3 @@
-
 L.Polyline = L.Path.extend({
 	initialize: function (latlngs, options) {
 		L.Path.prototype.initialize.call(this, options);
@@ -90,13 +89,13 @@ L.Polyline = L.Path.extend({
 	onAdd: function (map) {
 		L.Path.prototype.onAdd.call(this, map);
 
-		if (this.editing.enabled()) {
+		if (this.editing && this.editing.enabled()) {
 			this.editing.addHooks();
 		}
 	},
 
 	onRemove: function (map) {
-		if (this.editing.enabled()) {
+		if (this.editing && this.editing.enabled()) {
 			this.editing.removeHooks();
 		}
 

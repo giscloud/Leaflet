@@ -3,40 +3,26 @@
  Leaflet is a modern open-source JavaScript library for interactive maps.
  http://leaflet.cloudmade.com
 */
+(function () {
 
-(function (root) {
-	root.L = {
-		VERSION: '0.4',
+var L, originalL;
 
-		ROOT_URL: root.L_ROOT_URL || (function () {
-			var scripts = document.getElementsByTagName('script'),
-			    leafletRe = /\/?leaflet[\-\._]?([\w\-\._]*)\.js\??/;
+if (typeof exports !== 'undefined') {
+	L = exports;
+} else {
+	L = {};
+	
+	originalL = window.L;
 
-			var i, len, src, matches;
-
-			for (i = 0, len = scripts.length; i < len; i++) {
-				src = scripts[i].src;
-				matches = src.match(leafletRe);
-
-				if (matches) {
-					if (matches[1] === 'include') {
-						return '../../dist/';
-					}
-					return src.split(leafletRe)[0] + '/';
-				}
-			}
-
-			return '';
-		}()),
-
-		noConflict: function () {
-			root.L = this._originalL;
-			return this;
-		},
-
-		_originalL: root.L
+	L.noConflict = function () {
+		window.L = originalL;
+		return L;
 	};
-}(this));
+
+	window.L = L;
+}
+
+L.version = '0.4';
 
 
 /*
@@ -58,7 +44,7 @@ L.Util = {
 	},
 
 	bind: function (fn, obj) { // (Function, Object) -> Function
-		var args = Array.prototype.slice.call(arguments, 2);
+		var args = arguments.length > 2 ? Array.prototype.slice.call(arguments, 2) : null;
 		return function () {
 			return fn.apply(obj, args || arguments);
 		};
@@ -112,23 +98,28 @@ L.Util = {
 	}()),
 
 	limitExecByInterval: function (fn, time, context) {
-		var lock, execOnUnlock, args;
-		function exec() {
-			lock = false;
-			if (execOnUnlock) {
-				args.callee.apply(context, args);
-				execOnUnlock = false;
-			}
-		}
-		return function () {
-			args = arguments;
-			if (!lock) {
-				lock = true;
-				setTimeout(exec, time);
-				fn.apply(context, args);
-			} else {
+		var lock, execOnUnlock;
+		
+		return function wrapperFn() {
+			var args = arguments;
+
+			if (lock) {
 				execOnUnlock = true;
+				return;
 			}
+
+			lock = true;
+			
+			setTimeout(function () {
+				lock = false;
+				
+				if (execOnUnlock) {
+					wrapperFn.apply(context, args);
+					execOnUnlock = false;
+				}
+			}, time);
+
+			fn.apply(context, args);
 		};
 	},
 
@@ -554,6 +545,12 @@ L.DomUtil = {
 					L.DomUtil.getStyle(el, 'position') === 'absolute') {
 				break;
 			}
+			if (L.DomUtil.getStyle(el, 'position') === 'fixed') {
+				top += docBody.scrollTop || 0;
+				left += docBody.scrollLeft || 0;
+				break;
+			}
+
 			el = el.offsetParent;
 		} while (el);
 
@@ -619,7 +616,7 @@ L.DomUtil = {
 
 	setOpacity: function (el, value) {
 		if (L.Browser.ie) {
-			el.style.filter = 'alpha(opacity=' + Math.round(value * 100) + ')';
+		    el.style.filter += value !== 1 ? 'alpha(opacity=' + Math.round(value * 100) + ')' : '';
 		} else {
 			el.style.opacity = value;
 		}
@@ -1103,7 +1100,8 @@ L.Map = L.Class.extend({
 		// TODO looks ugly, refactor!!!
 		if (this.options.zoomAnimation && L.TileLayer && (layer instanceof L.TileLayer)) {
 			this._tileLayersNum++;
-			layer.on('load', this._onTileLayerLoad, this);
+            this._tileLayersToLoad++;
+            layer.on('load', this._onTileLayerLoad, this);
 		}
 
 		var onMapLoad = function () {
@@ -1132,7 +1130,8 @@ L.Map = L.Class.extend({
 		// TODO looks ugly, refactor
 		if (this.options.zoomAnimation && L.TileLayer && (layer instanceof L.TileLayer)) {
 			this._tileLayersNum--;
-			layer.off('load', this._onTileLayerLoad, this);
+            this._tileLayersToLoad--;
+            layer.off('load', this._onTileLayerLoad, this);
 		}
 
 		return this.fire('layerremove', {layer: layer});
@@ -1272,6 +1271,10 @@ L.Map = L.Class.extend({
 
 	getPanes: function () {
 		return this._panes;
+	},
+	
+	getContainer: function () {
+		return this._container;
 	},
 
 
@@ -1641,6 +1644,7 @@ L.TileLayer = L.Class.extend({
 		noWrap: false,
 		zoomOffset: 0,
 		zoomReverse: false,
+		detectRetina: false,
 
 		unloadInvisibleTiles: L.Browser.mobile,
 		updateWhenIdle: L.Browser.mobile,
@@ -1648,7 +1652,19 @@ L.TileLayer = L.Class.extend({
 	},
 
 	initialize: function (url, options) {
-		L.Util.setOptions(this, options);
+		options = L.Util.setOptions(this, options);
+
+		// detecting retina displays, adjusting tileSize and zoom levels
+		if (options.detectRetina && window.devicePixelRatio > 1 && options.maxZoom > 0) {
+
+			options.tileSize = Math.floor(options.tileSize / 2);
+			options.zoomOffset++;
+
+			if (options.minZoom > 0) {
+				options.minZoom--;
+			}
+			this.options.maxZoom--;
+		}
 
 		this._url = url;
 
@@ -1960,6 +1976,13 @@ L.TileLayer = L.Class.extend({
 		tile.src     = this.getTileUrl(tilePoint, zoom);
 	},
 
+    _tileLoaded: function () {
+        this._tilesToLoad--;
+        if (!this._tilesToLoad) {
+            this.fire('load');
+        }
+    },
+
 	_tileOnLoad: function (e) {
 		var layer = this._layer;
 
@@ -1970,10 +1993,7 @@ L.TileLayer = L.Class.extend({
 			url: this.src
 		});
 
-		layer._tilesToLoad--;
-		if (!layer._tilesToLoad) {
-			layer.fire('load');
-		}
+        layer._tileLoaded();
 	},
 
 	_tileOnError: function (e) {
@@ -1988,7 +2008,9 @@ L.TileLayer = L.Class.extend({
 		if (newUrl) {
 			this.src = newUrl;
 		}
-	}
+
+        layer._tileLoaded();
+    }
 });
 
 
@@ -2192,12 +2214,17 @@ L.Icon = L.Class.extend({
 	},
 
 	createShadow: function () {
-		return this.options.shadowUrl ? this._createIcon('shadow') : null;
+		return this._createIcon('shadow');
 	},
 
 	_createIcon: function (name) {
-		var img = this._createImg(this.options[name + 'Url']);
+		var src = this._getIconUrl(name);
+
+		if (!src) { return null; }
+		
+		var img = this._createImg(src);
 		this._setIconStyles(img, name);
+
 		return img;
 	},
 
@@ -2229,6 +2256,7 @@ L.Icon = L.Class.extend({
 
 	_createImg: function (src) {
 		var el;
+
 		if (!L.Browser.ie6) {
 			el = document.createElement('img');
 			el.src = src;
@@ -2237,21 +2265,50 @@ L.Icon = L.Class.extend({
 			el.style.filter = 'progid:DXImageTransform.Microsoft.AlphaImageLoader(src="' + src + '")';
 		}
 		return el;
+	},
+
+	_getIconUrl: function (name) {
+		return this.options[name + 'Url'];
 	}
 });
 
+
+// TODO move to a separate file
+
 L.Icon.Default = L.Icon.extend({
 	options: {
-		iconUrl: L.ROOT_URL + 'images/marker.png',
 		iconSize: new L.Point(25, 41),
 		iconAnchor: new L.Point(13, 41),
 		popupAnchor: new L.Point(0, -33),
 
-		shadowUrl: L.ROOT_URL + 'images/marker-shadow.png',
 		shadowSize: new L.Point(41, 41)
+	},
+
+	_getIconUrl: function (name) {
+		var path = L.Icon.Default.imagePath;
+		if (!path) {
+			throw new Error("Couldn't autodetect L.Icon.Default.imagePath, set it manually.");
+		}
+
+		return path + '/marker-' + name + '.png';
 	}
 });
 
+L.Icon.Default.imagePath = (function () {
+	var scripts = document.getElementsByTagName('script'),
+	    leafletRe = /\/?leaflet[\-\._]?([\w\-\._]*)\.js\??/;
+
+	var i, len, src, matches;
+
+	for (i = 0, len = scripts.length; i < len; i++) {
+		src = scripts[i].src;
+		matches = src.match(leafletRe);
+
+		if (matches) {
+			return src.split(leafletRe)[0] + '/images';
+		}
+	}
+}());
 
 /*
  * L.Marker is used to display clickable/draggable icons on the map.
@@ -3039,7 +3096,7 @@ L.Path = L.Path.extend({
 	// TODO remove duplication with L.Map
 	_initEvents: function () {
 		if (this.options.clickable) {
-			if (!L.Browser.vml) {
+			if (L.Browser.svg || !L.Browser.vml) {
 				this._path.setAttribute('class', 'leaflet-clickable');
 			}
 
@@ -3609,7 +3666,6 @@ L.LineUtil = {
 };
 
 
-
 L.Polyline = L.Path.extend({
 	initialize: function (latlngs, options) {
 		L.Path.prototype.initialize.call(this, options);
@@ -3701,13 +3757,13 @@ L.Polyline = L.Path.extend({
 	onAdd: function (map) {
 		L.Path.prototype.onAdd.call(this, map);
 
-		if (this.editing.enabled()) {
+		if (this.editing && this.editing.enabled()) {
 			this.editing.addHooks();
 		}
 	},
 
 	onRemove: function (map) {
-		if (this.editing.enabled()) {
+		if (this.editing && this.editing.enabled()) {
 			this.editing.removeHooks();
 		}
 
@@ -4005,7 +4061,7 @@ L.Circle = L.Path.extend({
 			point2 = this._map.latLngToLayerPoint(latlng2);
 
 		this._point = this._map.latLngToLayerPoint(this._latlng);
-		this._radius = Math.round(this._point.x - point2.x);
+		this._radius = Math.max(Math.round(this._point.x - point2.x), 1);
 	},
 
 	getBounds: function () {
@@ -4019,6 +4075,10 @@ L.Circle = L.Path.extend({
 			ne = map.unproject(nePoint, zoom, true);
 
 		return new L.LatLngBounds(sw, ne);
+	},
+	
+	getLatLng: function () {
+		return this._latlng;
 	},
 
 	getPathString: function () {
@@ -4039,6 +4099,10 @@ L.Circle = L.Path.extend({
 			return "AL " + p.x + "," + p.y + " " + r + "," + r + " 0," + (65535 * 360);
 		}
 	},
+	
+	getRadius: function () {
+		return this._mRadius;
+	},
 
 	_getLngRadius: function () {
 		var equatorLength = 40075017,
@@ -4048,6 +4112,9 @@ L.Circle = L.Path.extend({
 	},
 
 	_checkIfEmpty: function () {
+		if (!this._map) {
+			return false;
+		}
 		var vp = this._map._pathViewport,
 			r = this._radius,
 			p = this._point;
@@ -5380,11 +5447,16 @@ L.Control = L.Class.extend({
 	},
 
 	setPosition: function (position) {
+		var map = this._map;
+
+		if (map) {
+			map.removeControl(this);
+		}
+
 		this.options.position = position;
 
-		if (this._map) {
-			this._map.removeControl(this);
-			this._map.addControl(this);
+		if (map) {
+			map.addControl(this);
 		}
 	},
 
@@ -5818,8 +5890,8 @@ L.Control.Layers = L.Control.extend({
 			input.name = 'leaflet-base-layers';
 		}
 		input.type = obj.overlay ? 'checkbox' : 'radio';
-		input.checked = this._map.hasLayer(obj.layer);
 		input.layerId = L.Util.stamp(obj.layer);
+		input.defaultChecked = this._map.hasLayer(obj.layer);
 
 		L.DomEvent.addListener(input, 'click', this._onInputClick, this);
 
@@ -6443,3 +6515,6 @@ L.Map.include({
 });
 
 
+
+
+}());
