@@ -21,6 +21,7 @@ L.TileLayer = L.Class.extend({
         zoomAnimation: true,
 		zoomOffset: 0,
 		zoomReverse: false,
+		detectRetina: false,
 
 		unloadInvisibleTiles: L.Browser.mobile,
 		updateWhenIdle: L.Browser.mobile,
@@ -28,7 +29,19 @@ L.TileLayer = L.Class.extend({
 	},
 
 	initialize: function (url, options) {
-		L.Util.setOptions(this, options);
+		options = L.Util.setOptions(this, options);
+
+		// detecting retina displays, adjusting tileSize and zoom levels
+		if (options.detectRetina && window.devicePixelRatio > 1 && options.maxZoom > 0) {
+
+			options.tileSize = Math.floor(options.tileSize / 2);
+			options.zoomOffset++;
+
+			if (options.minZoom > 0) {
+				options.minZoom--;
+			}
+			this.options.maxZoom--;
+		}
 
 		if (typeof url === 'string') {
 			this._url = [url];
@@ -378,6 +391,16 @@ L.TileLayer = L.Class.extend({
 		tile.src     = this.getTileUrl(tilePoint, zoom);
 	},
 
+    _tileLoaded: function () {
+        this._tilesToLoad--;
+        if (!this._tilesToLoad) {
+            this.fire('load');
+
+			clearTimeout(this._removeOldContainerTimer);
+			this._removeOldContainerTimer = setTimeout(L.Util.bind(this._removeOldContainer, this), 500);
+		}
+    },
+
 	_tileOnLoad: function (e) {
 		var layer = this._layer;
 
@@ -388,13 +411,7 @@ L.TileLayer = L.Class.extend({
 			url: this.src
 		});
 
-		layer._tilesToLoad--;
-		if (!layer._tilesToLoad) {
-			layer.fire('load');
-
-			clearTimeout(layer._removeOldContainerTimer);
-			layer._removeOldContainerTimer = setTimeout(L.Util.bind(layer._removeOldContainer, layer), 500);
-		}
+        layer._tileLoaded();
 	},
 
 	_removeOldContainer: function () {
@@ -423,6 +440,8 @@ L.TileLayer = L.Class.extend({
 		if (newUrl) {
 			this.src = newUrl;
 		}
-	}
+
+        layer._tileLoaded();
+    }
 });
 
