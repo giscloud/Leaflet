@@ -127,7 +127,7 @@ L.Map.include(!L.DomUtil.TRANSITION ? {} : {
 		i, len, tile, id;
 
 		for (id in this._layers) {
-			if (this._layers.hasOwnProperty(id)) {
+			if (this._layers.hasOwnProperty(id) && L.TileLayer && (this._layers[id] instanceof L.TileLayer)) {
 				this._layers[id].fire("stoploadingtiles");
 			}
 		}
