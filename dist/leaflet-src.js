@@ -2512,8 +2512,12 @@ L.Marker = L.Class.extend({
 	},
 
 	setVisible: function (onoff) {
-		this._icon && L.DomUtil.setVisible(this._icon, onoff);
-		this._shadow && L.DomUtil.setVisible(this._shadow, onoff);
+		if (this._icon) {
+			L.DomUtil.setVisible(this._icon, onoff);
+		}
+		if (this._shadow) {
+			L.DomUtil.setVisible(this._shadow, onoff);
+		}
 		this.options.visible = onoff;
 		return this;
 	},
@@ -2521,25 +2525,25 @@ L.Marker = L.Class.extend({
 	getVisible: function (onoff) {
 		return this.options.visible;
 	},
-    
+
     setLabelVisible: function (onoff) {
         if (this.options.icon && this.options.icon instanceof L.Icon.Label) {
             this.options.icon.setLabelVisible(onoff);
         }
     },
-    
+
     getLabelVisible: function () {
         if (this.options.icon && this.options.icon instanceof L.Icon.Label) {
             return this.options.icon.getLabelVisible();
         }
     },
-    
+
     setLabelText: function (text) {
         if (this.options.icon && this.options.icon instanceof L.Icon.Label) {
             this.options.icon.setLabelText(text);
         }
     },
-    
+
     getLabelText: function () {
         if (this.options.icon && this.options.icon instanceof L.Icon.Label) {
             return this.options.icon.getLabelText();
@@ -2654,19 +2658,19 @@ L.Marker = L.Class.extend({
 	_updateOpacity: function (opacity) {
 		L.DomUtil.setOpacity(this._icon, this.options.opacity);
 	},
-    
+
     setRotation: function (degrees) {
         var icon = this._icon;
-        
+
         this.options.rotation = degrees;
-        
+
         if (icon.children && icon.children.length) {
             L.DomUtil.setRotation(this._icon.children[0], degrees);
         } else {
             L.DomUtil.setRotation(this._icon, degrees);
         }
     },
-    
+
     getRotation: function () {
         return this.options.rotation;
     }
@@ -6739,7 +6743,7 @@ L.Map.include(!L.DomUtil.TRANSITION ? {} : {
 		i, len, tile, id;
 
 		for (id in this._layers) {
-			if (this._layers.hasOwnProperty(id)) {
+			if (this._layers.hasOwnProperty(id) && L.TileLayer && (this._layers[id] instanceof L.TileLayer)) {
 				this._layers[id].fire("stoploadingtiles");
 			}
 		}
