@@ -46,6 +46,7 @@ L.Path = L.Path.extend({
 			this._path.setAttribute('stroke', this.options.color);
 			this._path.setAttribute('stroke-opacity', this.options.opacity);
 			this._path.setAttribute('stroke-width', this.options.weight);
+            this._path.setAttribute('stroke-dasharray', this.options.dasharray);
 		} else {
 			this._path.setAttribute('stroke', 'none');
 		}

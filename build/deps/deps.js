@@ -186,6 +186,11 @@ var deps = {
 		desc: 'Enables zooming to bounding box by shift-dragging the map.'
 	},
 
+	Measure: {
+		src: ['map/handler/Map.Measure.js'],
+		desc: 'Enables the map measure tool.'
+	},
+
 	MarkerDrag: {
 		src: ['layer/marker/Marker.Drag.js'],
 		deps: ['Marker'],

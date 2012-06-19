@@ -16,6 +16,7 @@ L.Path = L.Class.extend({
 		color: '#0033ff',
 		weight: 5,
 		opacity: 0.5,
+        dasharray: "",
 
 		fill: false,
 		fillColor: null, //same as color by default

@@ -19,12 +19,16 @@ L.Icon.Label = L.Icon.extend({
 	
 	initialize: function (options) {
 		L.Util.setOptions(this, options);
-		L.Icon.prototype.initialize.call(this, this.options);
+        if (!this.options.icon) {
+            L.Icon.prototype.initialize.call(this, this.options);
+        }
         this._label = null;
 	},
 
 	createIcon: function () {
-		return this._createLabel(L.Icon.prototype._createIcon.call(this, 'icon'));
+        return this.options.icon ?
+            this._createLabel(this.options.icon.createIcon()) :
+            this._createLabel(L.Icon.prototype._createIcon.call(this, 'icon'));
 	},
 	
 	createShadow: function () {
