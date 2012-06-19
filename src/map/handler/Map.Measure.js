@@ -83,7 +83,8 @@ L.Map.Measure = L.Handler.extend({
 									   current: this._segments[this._segments.length - 1],
 									   segments: this._segments,
 									   waypoints: this._points });
-		this.disable();
+		this.removeHooks();
+		this.addHooks();
 		e.originalEvent.stopPropagation();
 	},
 

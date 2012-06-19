@@ -5561,8 +5561,6 @@ L.Map.Measure = L.Handler.extend({
 		this._doubleClickZoomOriginallyEnabled = this._map.doubleClickZoom.enabled;
 		this._map.doubleClickZoom.disable();
 
-		this._container.style.cursor = 'crosshair';
-
 		this._total = 0;
 		this._current = 0;
 		this._segments = [];
@@ -5585,7 +5583,6 @@ L.Map.Measure = L.Handler.extend({
 		if (this._doubleClickZoomOriginallyEnabled) {
 			this._map.doubleClickZoom.enable();
 		}
-		this._container.style.cursor = '';
 	},
 
 	_onDoubleClick: function (e) {
@@ -5598,7 +5595,8 @@ L.Map.Measure = L.Handler.extend({
 									   current: this._segments[this._segments.length - 1],
 									   segments: this._segments,
 									   waypoints: this._points });
-		this.disable();
+		this.removeHooks();
+		this.addHooks();
 		e.originalEvent.stopPropagation();
 	},
 
