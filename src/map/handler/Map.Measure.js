@@ -189,7 +189,11 @@ L.Map.Measure = L.Handler.extend({
 
 	_calculate: function (latlng) {
 		var last = this._lastPoint;
-		this._current = this._haversine(last.lat, last.lng, latlng.lat, latlng.lng);
+        if (this.options.calculateDistance && this.options.calculateDistance.call) {
+            this._current = this.options.calculateDistance.call(this, last.lat, last.lng, latlng.lat, latlng.lng);
+        } else {
+            this._current = this._haversine(last.lat, last.lng, latlng.lat, latlng.lng);
+        }
 	},
 
 	_haversine: function (lat1, lon1, lat2, lon2) {
@@ -198,6 +202,8 @@ L.Map.Measure = L.Handler.extend({
 		R = 6371;
 		lat1 = lat1 * Math.PI / 180;
 		lat2 = lat2 * Math.PI / 180;
+        lon1 = lon1 * Math.PI / 180;
+		lon2 = lon2 * Math.PI / 180;
 		dLat = lat2 - lat1;
 		dLon = lon2 - lon1;
 		a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
