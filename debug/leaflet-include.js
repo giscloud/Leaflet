@@ -51,6 +51,7 @@
 		'map/handler/Map.DoubleClickZoom.js',
 		'map/handler/Map.ScrollWheelZoom.js',
 		'map/handler/Map.BoxZoom.js',
+		'map/handler/Map.Keyboard.js',
 
 		'layer/LayerGroup.js',
 		'layer/FeatureGroup.js',
@@ -62,6 +63,7 @@
 		'layer/Popup.js',
 
 		'layer/marker/Icon.js',
+		'layer/marker/Icon.Default.js',
 		'layer/marker/DivIcon.js',
 		'layer/marker/Marker.js',
 		'layer/marker/Marker.Popup.js',
