@@ -234,6 +234,10 @@ L.Marker = L.Class.extend({
 
         this.options.rotation = degrees;
 
+        if (!icon) {
+            return;
+        }
+        
         if (icon.children && icon.children.length) {
             L.DomUtil.setRotation(this._icon.children[0], degrees);
         } else {
