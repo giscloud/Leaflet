@@ -346,35 +346,38 @@ L.Mixin.Events.fire = L.Mixin.Events.fireEvent;
 
 
 (function () {
-	var ua = navigator.userAgent.toLowerCase(),
-		ie = !!window.ActiveXObject,
+
+	var ie = !!window.ActiveXObject,
 		ie6 = ie && !window.XMLHttpRequest,
+
+		// terrible browser detection to work around Safari / iOS / Android browser bugs
+		// see TileLayer._addTile and debug/hacks/jitter.html
+
+		ua = navigator.userAgent.toLowerCase(),
 		webkit = ua.indexOf("webkit") !== -1,
-		gecko = ua.indexOf("gecko") !== -1,
-		//Terrible browser detection to work around a safari / iOS / android browser bug. See TileLayer._addTile and debug/hacks/jitter.html
 		chrome = ua.indexOf("chrome") !== -1,
-		opera = window.opera,
 		android = ua.indexOf("android") !== -1,
 		android23 = ua.search("android [23]") !== -1,
-		mobile = typeof orientation !== undefined + '' ? true : false,
+
+		mobile = typeof orientation !== undefined + '',
+		msTouch = (window.navigator && window.navigator.msPointerEnabled && window.navigator.msMaxTouchPoints),
+		retina = (('devicePixelRatio' in window && window.devicePixelRatio > 1) ||
+				('matchMedia' in window && window.matchMedia("(min-resolution:144dpi)").matches)),
+
 		doc = document.documentElement,
 		ie3d = ie && ('transition' in doc.style),
-		webkit3d = webkit && ('WebKitCSSMatrix' in window) && ('m11' in new window.WebKitCSSMatrix()),
-		gecko3d = gecko && ('MozPerspective' in doc.style),
-		opera3d = opera && ('OTransition' in doc.style),
+		webkit3d = ('WebKitCSSMatrix' in window) && ('m11' in new window.WebKitCSSMatrix()),
+		gecko3d = 'MozPerspective' in doc.style,
+		opera3d = 'OTransition' in doc.style,
+		any3d = !window.L_DISABLE_3D && (ie3d || webkit3d || gecko3d || opera3d);
 
-		msTouch = (window.navigator && window.navigator.msPointerEnabled && window.navigator.msMaxTouchPoints);
 
 	var touch = !window.L_NO_TOUCH && (function () {
+
 		var startName = 'ontouchstart';
 
-		// IE10+ (We simulate these into touch* events in L.DomEvent and L.DomEvent.MsTouch)
-		if (msTouch) {
-			return true;
-		}
-
-		// WebKit, etc
-		if (startName in doc) {
+		// IE10+ (We simulate these into touch* events in L.DomEvent and L.DomEvent.MsTouch) or WebKit, etc.
+		if (msTouch || (startName in doc)) {
 			return true;
 		}
 
@@ -397,15 +400,11 @@ L.Mixin.Events.fire = L.Mixin.Events.fireEvent;
 		return supported;
 	}());
 
-	var retina = (('devicePixelRatio' in window && window.devicePixelRatio > 1) || ('matchMedia' in window && window.matchMedia("(min-resolution:144dpi)").matches));
 
 	L.Browser = {
-		ua: ua,
-		ie: ie,
 		ie6: ie6,
 		webkit: webkit,
-		gecko: gecko,
-		opera: opera,
+
 		android: android,
 		android23: android23,
 
@@ -415,18 +414,19 @@ L.Mixin.Events.fire = L.Mixin.Events.fireEvent;
 		webkit3d: webkit3d,
 		gecko3d: gecko3d,
 		opera3d: opera3d,
-		any3d: !window.L_DISABLE_3D && (ie3d || webkit3d || gecko3d || opera3d),
+		any3d: any3d,
 
 		mobile: mobile,
 		mobileWebkit: mobile && webkit,
 		mobileWebkit3d: mobile && webkit3d,
-		mobileOpera: mobile && opera,
+		mobileOpera: mobile && window.opera,
 
 		touch: touch,
 		msTouch: msTouch,
 
 		retina: retina
 	};
+
 }());
 
 
@@ -785,7 +785,7 @@ L.DomUtil = {
 		if ('opacity' in el.style) {
 			el.style.opacity = value;
 
-		} else if (L.Browser.ie) {
+		} else if ('filter' in el.style) {
 
 			var filter = false,
 				filterName = 'DXImageTransform.Microsoft.Alpha';
@@ -3916,11 +3916,11 @@ L.Map.include({
 
 	_animatePathZoom: function (opt) {
 		var scale = this.getZoomScale(opt.zoom),
-			offset = this._getCenterOffset(opt.center).divideBy(1 - 1 / scale),
-			viewportPos = this.containerPointToLayerPoint(this.getSize().multiplyBy(-L.Path.CLIP_PADDING)),
-			origin = viewportPos.add(offset).round();
+			offset = this._getCenterOffset(opt.center),
+			translate = offset.multiplyBy(-scale)._add(this._pathViewport.min);
 
-		this._pathRoot.style[L.DomUtil.TRANSFORM] = L.DomUtil.getTranslateString((origin.multiplyBy(-1).add(L.DomUtil.getPosition(this._pathRoot)).multiplyBy(scale).add(origin))) + ' scale(' + scale + ') ';
+		this._pathRoot.style[L.DomUtil.TRANSFORM] =
+				L.DomUtil.getTranslateString(translate) + ' scale(' + scale + ') ';
 
 		this._pathZooming = true;
 	},
@@ -6300,8 +6300,12 @@ L.Map.BoxZoom = L.Handler.extend({
 		L.DomEvent.off(this._container, 'mousedown', this._onMouseDown);
 	},
 
+	force: function (v) {
+		this._force = v;
+	},
+
 	_onMouseDown: function (e) {
-		if (!e.shiftKey || ((e.which !== 1) && (e.button !== 1))) { return false; }
+		if (!this._force && (!e.shiftKey || ((e.which !== 1) && (e.button !== 1)))) { return false; }
 
 		L.DomUtil.disableTextSelection();
 
@@ -6317,7 +6321,7 @@ L.Map.BoxZoom = L.Handler.extend({
 			.on(document, 'mousemove', this._onMouseMove, this)
 			.on(document, 'mouseup', this._onMouseUp, this)
 			.preventDefault(e);
-			
+
 		this._map.fire("boxzoomstart");
 	},
 
@@ -6356,8 +6360,12 @@ L.Map.BoxZoom = L.Handler.extend({
 				map.layerPointToLatLng(this._startLayerPoint),
 				map.layerPointToLatLng(layerPoint));
 
-		map.fitBounds(bounds);
-		
+		if (this._onDone) {
+			this._onDone(this._startLayerPoint, layerPoint);
+		} else {
+			map.fitBounds(bounds);
+		}
+
 		map.fire("boxzoomend", {
 			boxZoomBounds: bounds
 		});
