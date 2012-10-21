@@ -21,8 +21,12 @@ L.Map.BoxZoom = L.Handler.extend({
 		L.DomEvent.off(this._container, 'mousedown', this._onMouseDown);
 	},
 
+	force: function (v) {
+		this._force = v;
+	},
+
 	_onMouseDown: function (e) {
-		if (!e.shiftKey || ((e.which !== 1) && (e.button !== 1))) { return false; }
+		if (!this._force && (!e.shiftKey || ((e.which !== 1) && (e.button !== 1)))) { return false; }
 
 		L.DomUtil.disableTextSelection();
 
@@ -38,7 +42,7 @@ L.Map.BoxZoom = L.Handler.extend({
 			.on(document, 'mousemove', this._onMouseMove, this)
 			.on(document, 'mouseup', this._onMouseUp, this)
 			.preventDefault(e);
-			
+
 		this._map.fire("boxzoomstart");
 	},
 
@@ -77,8 +81,12 @@ L.Map.BoxZoom = L.Handler.extend({
 				map.layerPointToLatLng(this._startLayerPoint),
 				map.layerPointToLatLng(layerPoint));
 
-		map.fitBounds(bounds);
-		
+		if (this._onDone) {
+			this._onDone(this._startLayerPoint, layerPoint);
+		} else {
+			map.fitBounds(bounds);
+		}
+
 		map.fire("boxzoomend", {
 			boxZoomBounds: bounds
 		});
