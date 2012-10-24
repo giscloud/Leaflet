@@ -1972,7 +1972,11 @@ L.TileLayer = L.Class.extend({
 			this.options.maxZoom--;
 		}
 
-		this._url = url;
+		if (typeof url === 'string') {
+            this._url = [url];
+        } else {
+            this._url = url;
+        }
 
 		var subdomains = this.options.subdomains;
 
@@ -2340,8 +2344,9 @@ L.TileLayer = L.Class.extend({
 
 	getTileUrl: function (tilePoint) {
 		this._adjustTilePoint(tilePoint);
+		var tileserverIndex = (tilePoint.x + tilePoint.y) % this._url.length;
 
-		return L.Util.template(this._url, L.Util.extend({
+		return L.Util.template(this._url[tileserverIndex], L.Util.extend({
 			s: this._getSubdomain(tilePoint),
 			z: this._getZoomForUrl(),
 			x: tilePoint.x,
