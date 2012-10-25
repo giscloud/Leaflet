@@ -62,6 +62,12 @@ var deps = {
 		deps: ['Marker'],
 		desc: 'Lightweight div-based icon for markers.'
 	},
+	
+	IconLabel: {
+		src: ['layer/marker/Icon.Label.js'],
+		deps: ['Marker'],
+		desc: 'Icon labels.'
+	},
 
 	Popup: {
 		src: ['layer/Popup.js', 'layer/marker/Marker.Popup.js', 'map/ext/Map.Popup.js'],
@@ -179,6 +185,11 @@ var deps = {
 	BoxZoom: {
 		src: ['map/handler/Map.BoxZoom.js'],
 		desc: 'Enables zooming to bounding box by shift-dragging the map.'
+	},
+	
+	Measure: {
+		src: ['map/handler/Map.Measure.js'],
+		desc: 'Enables measure tool.'
 	},
 
 	Keyboard: {
