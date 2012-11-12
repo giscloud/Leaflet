@@ -7,7 +7,7 @@ L.Map.Measure = L.Handler.extend({
 		lineOptions: {
 			color: "black",
 			weight: 2,
-			dasharray: "5, 7"
+			dashArray: "5, 7"
 		},
 		labelFunction: function (latlng, current, segments, total) {
 			if (total > 1000) {
