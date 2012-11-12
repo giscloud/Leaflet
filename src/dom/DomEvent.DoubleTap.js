@@ -1,4 +1,4 @@
-L.Util.extend(L.DomEvent, {
+L.extend(L.DomEvent, {
 
 	_touchstart: L.Browser.msTouch ? 'MSPointerDown' : 'touchstart',
 	_touchend: L.Browser.msTouch ? 'MSPointerUp' : 'touchend',
@@ -6,13 +6,13 @@ L.Util.extend(L.DomEvent, {
 	// inspired by Zepto touch code by Thomas Fuchs
 	addDoubleTapListener: function (obj, handler, id) {
 		var last,
-			doubleTap = false,
-			delay = 250,
-			touch,
-			pre = '_leaflet_',
-			touchstart = this._touchstart,
-			touchend = this._touchend,
-			trackedTouches = [];
+		    doubleTap = false,
+		    delay = 250,
+		    touch,
+		    pre = '_leaflet_',
+		    touchstart = this._touchstart,
+		    touchend = this._touchend,
+		    trackedTouches = [];
 
 		function onTouchStart(e) {
 			var count;

@@ -13,8 +13,8 @@ L.Map.include({
 			}
 
 			var done = (zoomChanged ?
-					this._zoomToIfClose && this._zoomToIfClose(center, zoom) :
-					this._panByIfClose(center));
+			        this._zoomToIfClose && this._zoomToIfClose(center, zoom) :
+			        this._panByIfClose(center));
 
 			// exit if animated pan or zoom started
 			if (done) {
@@ -29,7 +29,7 @@ L.Map.include({
 		return this;
 	},
 
-	panBy: function (offset, duration) {
+	panBy: function (offset, duration, easeLinearity) {
 		offset = L.point(offset);
 
 		if (!(offset.x || offset.y)) {
@@ -50,7 +50,7 @@ L.Map.include({
 		L.DomUtil.addClass(this._mapPane, 'leaflet-pan-anim');
 
 		var newPos = L.DomUtil.getPosition(this._mapPane).subtract(offset);
-		this._panAnim.run(this._mapPane, newPos, duration || 0.25);
+		this._panAnim.run(this._mapPane, newPos, duration || 0.25, easeLinearity);
 
 		return this;
 	},
@@ -77,9 +77,9 @@ L.Map.include({
 
 	_offsetIsWithinView: function (offset, multiplyFactor) {
 		var m = multiplyFactor || 1,
-			size = this.getSize();
+		    size = this.getSize();
 
 		return (Math.abs(offset.x) <= size.x * m) &&
-				(Math.abs(offset.y) <= size.y * m);
+		       (Math.abs(offset.y) <= size.y * m);
 	}
 });

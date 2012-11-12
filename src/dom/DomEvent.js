@@ -3,12 +3,12 @@
  */
 
 L.DomEvent = {
-	/* inpired by John Resig, Dean Edwards and YUI addEvent implementations */
+	/* inspired by John Resig, Dean Edwards and YUI addEvent implementations */
 	addListener: function (obj, type, fn, context) { // (HTMLElement, String, Function[, Object])
 
-		var id = L.Util.stamp(fn),
-			key = '_leaflet_' + type + id,
-			handler, originalHandler, newType;
+		var id = L.stamp(fn),
+		    key = '_leaflet_' + type + id,
+		    handler, originalHandler, newType;
 
 		if (obj[key]) { return this; }
 
@@ -22,7 +22,7 @@ L.DomEvent = {
 			return this.addDoubleTapListener(obj, handler, id);
 
 		} else if ('addEventListener' in obj) {
-			
+
 			if (type === 'mousewheel') {
 				obj.addEventListener('DOMMouseScroll', handler, false);
 				obj.addEventListener(type, handler, false);
@@ -54,9 +54,9 @@ L.DomEvent = {
 
 	removeListener: function (obj, type, fn) {  // (HTMLElement, String, Function)
 
-		var id = L.Util.stamp(fn),
-			key = '_leaflet_' + type + id,
-			handler = obj[key];
+		var id = L.stamp(fn),
+		    key = '_leaflet_' + type + id,
+		    handler = obj[key];
 
 		if (!handler) { return; }
 
@@ -98,7 +98,7 @@ L.DomEvent = {
 	disableClickPropagation: function (el) {
 
 		var stop = L.DomEvent.stopPropagation;
-		
+
 		return L.DomEvent
 			.addListener(el, L.Draggable.START, stop)
 			.addListener(el, 'click', stop)
@@ -122,10 +122,10 @@ L.DomEvent = {
 	getMousePosition: function (e, container) {
 
 		var body = document.body,
-			docEl = document.documentElement,
-			x = e.pageX ? e.pageX : e.clientX + body.scrollLeft + docEl.scrollLeft,
-			y = e.pageY ? e.pageY : e.clientY + body.scrollTop + docEl.scrollTop,
-			pos = new L.Point(x, y);
+		    docEl = document.documentElement,
+		    x = e.pageX ? e.pageX : e.clientX + body.scrollLeft + docEl.scrollLeft,
+		    y = e.pageY ? e.pageY : e.clientY + body.scrollTop + docEl.scrollTop,
+		    pos = new L.Point(x, y);
 
 		return (container ? pos._subtract(L.DomUtil.getViewportOffset(container)) : pos);
 	},
