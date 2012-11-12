@@ -133,7 +133,7 @@ L.Map.Measure = L.Handler.extend({
 
 	_getLabeledIconMarker: function (latlng) {
 		return new L.Marker(latlng, {
-			icon: new this._IconLabel({options: { labelText: this._getMarkerLabelText(latlng) }}),
+			icon: new this._IconLabel({ labelText: this._getMarkerLabelText(latlng) }),
 			clickable: false
 		});
 	},
