@@ -14,7 +14,8 @@ L.Marker = L.Class.extend({
 		zIndexOffset: 0,
 		opacity: 1,
 		riseOnHover: false,
-		riseOffset: 250
+		riseOffset: 250,
+		rotation: 0
 	},
 
 	initialize: function (latlng, options) {
@@ -64,6 +65,26 @@ L.Marker = L.Class.extend({
 
 		this.fire('move', { latlng: this._latlng });
 	},
+
+    setRotation: function (degrees) {
+        var icon = this._icon;
+
+        this.options.rotation = degrees;
+
+        if (!icon) {
+            return;
+        }
+
+        if (icon.children && icon.children.length) {
+            L.DomUtil.setRotation(this._icon.children[0], degrees);
+        } else {
+            L.DomUtil.setRotation(this._icon, degrees);
+        }
+    },
+
+    getRotation: function () {
+        return this.options.rotation;
+    },
 
 	setZIndexOffset: function (offset) {
 		this.options.zIndexOffset = offset;

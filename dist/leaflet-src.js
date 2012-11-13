@@ -847,6 +847,10 @@ L.DomUtil = {
 		return false;
 	},
 
+	getRotateString: function (degrees) {
+		return 'rotate(' + degrees + 'deg)';
+	},
+
 	getTranslateString: function (point) {
 		// on WebKit browsers (Chrome/Safari/iOS Safari/Android) using translate3d instead of translate
 		// makes animation smoother as it ensures HW accel is used. Firefox 13 doesn't care
@@ -865,6 +869,30 @@ L.DomUtil = {
 		    scaleStr = ' scale(' + scale + ') ';
 
 		return preTranslateStr + scaleStr;
+	},
+
+	getTransformString: function (el) {
+		var arr = [];
+
+		if (el._leaflet_pos) {
+			arr.push(L.DomUtil.getTranslateString(el._leaflet_pos));
+		}
+
+		if (el._leaflet_rot) {
+			arr.push(L.DomUtil.getRotateString(el._leaflet_rot));
+		}
+
+		return arr.join(' ');
+	},
+
+	setRotation: function (el, degrees) {
+		degrees = (degrees >= 0) ? (degrees % 360) : (360 + degrees % 360);
+		el._leaflet_rot = degrees;
+		el.style[L.DomUtil.TRANSFORM] =  L.DomUtil.getTransformString(el);
+	},
+
+	getRotation: function (el) {
+		return el._leaflet_rot;
 	},
 
 	setPosition: function (el, point, disable3D) { // (HTMLElement, Point[, Boolean])
@@ -2934,7 +2962,8 @@ L.Marker = L.Class.extend({
 		zIndexOffset: 0,
 		opacity: 1,
 		riseOnHover: false,
-		riseOffset: 250
+		riseOffset: 250,
+		rotation: 0
 	},
 
 	initialize: function (latlng, options) {
@@ -2984,6 +3013,26 @@ L.Marker = L.Class.extend({
 
 		this.fire('move', { latlng: this._latlng });
 	},
+
+    setRotation: function (degrees) {
+        var icon = this._icon;
+
+        this.options.rotation = degrees;
+
+        if (!icon) {
+            return;
+        }
+
+        if (icon.children && icon.children.length) {
+            L.DomUtil.setRotation(this._icon.children[0], degrees);
+        } else {
+            L.DomUtil.setRotation(this._icon, degrees);
+        }
+    },
+
+    getRotation: function () {
+        return this.options.rotation;
+    },
 
 	setZIndexOffset: function (offset) {
 		this.options.zIndexOffset = offset;
