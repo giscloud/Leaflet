@@ -50,6 +50,9 @@
 	width: 0;
 	height: 0;
 	}
+.leaflet-hidden {
+	visibility: hidden !important;
+	}
 
 .leaflet-tile-pane    { z-index: 2; }
 .leaflet-objects-pane { z-index: 3; }
