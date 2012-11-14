@@ -835,6 +835,18 @@ L.DomUtil = {
 		}
 	},
 
+	setVisible: function (element, onoff) {
+		if (onoff) {
+			L.DomUtil.removeClass(element, "leaflet-hidden");
+		} else {
+			L.DomUtil.addClass(element, "leaflet-hidden");
+		}
+	},
+
+	getVisible: function (element) {
+		return !L.DomUtil.hasClass(element, "leaflet-hidden");
+	},
+
 	testProp: function (props) {
 
 		var style = document.documentElement.style;
@@ -3014,25 +3026,25 @@ L.Marker = L.Class.extend({
 		this.fire('move', { latlng: this._latlng });
 	},
 
-    setRotation: function (degrees) {
-        var icon = this._icon;
+	setRotation: function (degrees) {
+		var icon = this._icon;
 
-        this.options.rotation = degrees;
+		this.options.rotation = degrees;
 
-        if (!icon) {
-            return;
-        }
+		if (!icon) {
+			return;
+		}
 
-        if (icon.children && icon.children.length) {
-            L.DomUtil.setRotation(this._icon.children[0], degrees);
-        } else {
-            L.DomUtil.setRotation(this._icon, degrees);
-        }
-    },
+		if (icon.children && icon.children.length) {
+			L.DomUtil.setRotation(this._icon.children[0], degrees);
+		} else {
+			L.DomUtil.setRotation(this._icon, degrees);
+		}
+	},
 
-    getRotation: function () {
-        return this.options.rotation;
-    },
+	getRotation: function () {
+		return this.options.rotation;
+	},
 
 	setZIndexOffset: function (offset) {
 		this.options.zIndexOffset = offset;
@@ -3051,6 +3063,33 @@ L.Marker = L.Class.extend({
 			this.update();
 		}
 	},
+
+	setVisible: function (onoff) {
+		if (this._icon) {
+			L.DomUtil.setVisible(this._icon, onoff);
+		}
+		if (this._shadow) {
+			L.DomUtil.setVisible(this._shadow, onoff);
+		}
+		this.options.visible = !!onoff;
+		return this;
+	},
+
+	getVisible: function (onoff) {
+		return !!this.options.visible;
+	},
+
+    setLabelVisible: function (onoff) {
+        if (this.options.icon && this.options.icon instanceof L.Icon.Label) {
+            this.options.icon.setLabelVisible(onoff);
+        }
+    },
+
+    getLabelVisible: function () {
+        if (this.options.icon && this.options.icon instanceof L.Icon.Label) {
+            return this.options.icon.getLabelVisible();
+        }
+    },
 
 	update: function () {
 		if (!this._icon) { return; }
