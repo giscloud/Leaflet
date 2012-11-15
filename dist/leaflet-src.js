@@ -6712,7 +6712,7 @@ L.Map.BoxZoom = L.Handler.extend({
 		        map.layerPointToLatLng(layerPoint));
 
 		if (this._onDone) {
-			this._onDone(this._startLayerPoint, layerPoint);
+			this._onDone(this._startLayerPoint, layerPoint, e);
 		} else {
 			map.fitBounds(bounds);
 		}
