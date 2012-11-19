@@ -526,6 +526,11 @@ L.Point.prototype = {
 		return Math.sqrt(x * x + y * y);
 	},
 
+	equals: function (point) {
+		return point.x === this.x &&
+		       point.y === this.y;
+	},
+
 	toString: function () {
 		return 'Point(' +
 		        L.Util.formatNum(this.x) + ', ' +
@@ -946,7 +951,7 @@ L.DomUtil.TRANSITION_END =
 
 
 /*
-	CM.LatLng represents a geographical point with latitude and longitude coordinates.
+	L.LatLng represents a geographical point with latitude and longitude coordinates.
 */
 
 L.LatLng = function (rawLat, rawLng, noWrap) { // (Number, Number[, Boolean])
@@ -3187,12 +3192,13 @@ L.Marker = L.Class.extend({
 	},
 
 	_initInteraction: function () {
-		if (!this.options.clickable) {
-			return;
-		}
+
+		if (!this.options.clickable) { return; }
+
+		// TODO refactor into something shared with Map/Path/etc. to DRY it up
 
 		var icon = this._icon,
-		    events = ['dblclick', 'mousedown', 'mouseover', 'mouseout'];
+		    events = ['dblclick', 'mousedown', 'mouseover', 'mouseout', 'contextmenu'];
 
 		L.DomUtil.addClass(icon, 'leaflet-clickable');
 		L.DomEvent.on(icon, 'click', this._onMouseClick, this);
@@ -3212,20 +3218,31 @@ L.Marker = L.Class.extend({
 
 	_onMouseClick: function (e) {
 		var wasDragged = this.dragging && this.dragging.moved();
+
 		if (this.hasEventListeners(e.type) || wasDragged) {
 			L.DomEvent.stopPropagation(e);
 		}
+
 		if (wasDragged) { return; }
+
 		if (this._map.dragging && this._map.dragging.moved()) { return; }
+
 		this.fire(e.type, {
 			originalEvent: e
 		});
 	},
 
 	_fireMouseEvent: function (e) {
+
 		this.fire(e.type, {
 			originalEvent: e
 		});
+
+		// TODO proper custom event propagation
+		// this line will always be called if marker is in a FeatureGroup
+		if (e.type === 'contextmenu' && this.hasEventListeners(e.type)) {
+			L.DomEvent.preventDefault(e);
+		}
 		if (e.type !== 'mousedown') {
 			L.DomEvent.stopPropagation(e);
 		}
@@ -3870,6 +3887,10 @@ L.LayerGroup = L.Class.extend({
 				method.call(context, this._layers[i]);
 			}
 		}
+	},
+
+	setZIndex: function (zIndex) {
+		return this.invoke('setZIndex', zIndex);
 	}
 });
 
@@ -4425,11 +4446,15 @@ L.Path = L.Browser.svg || !L.Browser.vml ? L.Path : L.Path.extend({
 			stroke.weight = options.weight + 'px';
 			stroke.color = options.color;
 			stroke.opacity = options.opacity;
+
 			if (options.dashArray) {
-				stroke.dashStyle = options.dashArray.replace(/ *, */g, ' ');
+				stroke.dashStyle = options.dashArray instanceof Array ?
+				    options.dashArray.join(' ') :
+				    options.dashArray.replace(/ *, */g, ' ');
 			} else {
 				stroke.dashStyle = '';
 			}
+
 		} else if (stroke) {
 			container.removeChild(stroke);
 			this._stroke = null;
@@ -4442,6 +4467,7 @@ L.Path = L.Browser.svg || !L.Browser.vml ? L.Path : L.Path.extend({
 			}
 			fill.color = options.fillColor || options.color;
 			fill.opacity = options.fillOpacity;
+
 		} else if (fill) {
 			container.removeChild(fill);
 			this._fill = null;
@@ -5637,10 +5663,12 @@ L.DomEvent = {
 
 		if (L.Browser.msTouch && type.indexOf('touch') === 0) {
 			return this.addMsTouchListener(obj, type, handler, id);
-		} else if (L.Browser.touch && (type === 'dblclick') && this.addDoubleTapListener) {
-			return this.addDoubleTapListener(obj, handler, id);
+		}
+		if (L.Browser.touch && (type === 'dblclick') && this.addDoubleTapListener) {
+			this.addDoubleTapListener(obj, handler, id);
+		}
 
-		} else if ('addEventListener' in obj) {
+		if ('addEventListener' in obj) {
 
 			if (type === 'mousewheel') {
 				obj.addEventListener('DOMMouseScroll', handler, false);
@@ -5718,8 +5746,11 @@ L.DomEvent = {
 
 		var stop = L.DomEvent.stopPropagation;
 
+		for (var i = L.Draggable.START.length - 1; i >= 0; i--) {
+			L.DomEvent.addListener(el, L.Draggable.START[i], stop);
+		}
+
 		return L.DomEvent
-			.addListener(el, L.Draggable.START, stop)
 			.addListener(el, 'click', stop)
 			.addListener(el, 'dblclick', stop);
 	},
@@ -5810,9 +5841,17 @@ L.Draggable = L.Class.extend({
 	includes: L.Mixin.Events,
 
 	statics: {
-		START: L.Browser.touch ? 'touchstart' : 'mousedown',
-		END: L.Browser.touch ? 'touchend' : 'mouseup',
-		MOVE: L.Browser.touch ? 'touchmove' : 'mousemove',
+		START: L.Browser.touch ? ['touchstart', 'mousedown'] : ['mousedown'],
+		END: {
+			mousedown: 'mouseup',
+			touchstart: 'touchend',
+			MSPointerDown: 'touchend'
+		},
+		MOVE: {
+			mousedown: 'mousemove',
+			touchstart: 'touchmove',
+			MSPointerDown: 'touchmove'
+		},
 		TAP_TOLERANCE: 15
 	},
 
@@ -5825,14 +5864,18 @@ L.Draggable = L.Class.extend({
 	enable: function () {
 		if (this._enabled) { return; }
 
-		L.DomEvent.on(this._dragStartTarget, L.Draggable.START, this._onDown, this);
+		for (var i = L.Draggable.START.length - 1; i >= 0; i--) {
+			L.DomEvent.on(this._dragStartTarget, L.Draggable.START[i], this._onDown, this);
+		}
 		this._enabled = true;
 	},
 
 	disable: function () {
 		if (!this._enabled) { return; }
 
-		L.DomEvent.off(this._dragStartTarget, L.Draggable.START, this._onDown);
+		for (var i = L.Draggable.START.length - 1; i >= 0; i--) {
+			L.DomEvent.off(this._dragStartTarget, L.Draggable.START[i], this._onDown, this);
+		}
 		this._enabled = false;
 		this._moved = false;
 	},
@@ -5880,8 +5923,8 @@ L.Draggable = L.Class.extend({
 			}, this), 1000);
 		}
 
-		L.DomEvent.on(document, L.Draggable.MOVE, this._onMove, this);
-		L.DomEvent.on(document, L.Draggable.END, this._onUp, this);
+		L.DomEvent.on(document, L.Draggable.MOVE[e.type], this._onMove, this);
+		L.DomEvent.on(document, L.Draggable.END[e.type], this._onUp, this);
 	},
 
 	_onMove: function (e) {
@@ -5942,8 +5985,12 @@ L.Draggable = L.Class.extend({
 			this._restoreCursor();
 		}
 
-		L.DomEvent.off(document, L.Draggable.MOVE, this._onMove);
-		L.DomEvent.off(document, L.Draggable.END, this._onUp);
+		for (var i in L.Draggable.MOVE) {
+			if (L.Draggable.MOVE.hasOwnProperty(i)) {
+				L.DomEvent.off(document, L.Draggable.MOVE[i], this._onMove);
+				L.DomEvent.off(document, L.Draggable.END[i], this._onUp);
+			}
+		}
 
 		if (this._moved) {
 			// ensure drag is not fired after dragend
@@ -6192,7 +6239,7 @@ L.Map.addInitHook('addHandler', 'doubleClickZoom', L.Map.DoubleClickZoom);
  */
 
 L.Map.mergeOptions({
-	scrollWheelZoom: !L.Browser.touch || L.Browser.msTouch
+	scrollWheelZoom: true
 });
 
 L.Map.ScrollWheelZoom = L.Handler.extend({
@@ -6226,9 +6273,10 @@ L.Map.ScrollWheelZoom = L.Handler.extend({
 
 	_performZoom: function () {
 		var map = this._map,
-		    delta = Math.round(this._delta),
+		    delta = this._delta,
 		    zoom = map.getZoom();
 
+		delta = delta > 0 ? Math.ceil(delta) : Math.round(delta);
 		delta = Math.max(Math.min(delta, 4), -4);
 		delta = map._limitZoom(zoom + delta) - zoom;
 
@@ -6705,9 +6753,11 @@ L.Map.BoxZoom = L.Handler.extend({
 		    .off(document, 'mouseup', this._onMouseUp);
 
 		var map = this._map,
-		    layerPoint = map.mouseEventToLayerPoint(e),
+		    layerPoint = map.mouseEventToLayerPoint(e);
 
-		    bounds = new L.LatLngBounds(
+		if (this._startLayerPoint.equals(layerPoint)) { return; }
+
+		var bounds = new L.LatLngBounds(
 		        map.layerPointToLatLng(this._startLayerPoint),
 		        map.layerPointToLatLng(layerPoint));
 
@@ -7475,10 +7525,18 @@ L.Control.Zoom = L.Control.extend({
 
 		this._map = map;
 
-		this._createButton('Zoom in', className + '-in', container, this._zoomIn, this);
-		this._createButton('Zoom out', className + '-out', container, this._zoomOut, this);
+		this._zoomInButton = this._createButton(
+		        '+', 'Zoom in',  className + '-in',  container, this._zoomIn,  this);
+		this._zoomOutButton = this._createButton(
+		        '-', 'Zoom out', className + '-out', container, this._zoomOut, this);
+
+		map.on('zoomend', this._updateDisabled, this);
 
 		return container;
+	},
+
+	onRemove: function (map) {
+		map.off('zoomend', this._updateDisabled, this);
 	},
 
 	_zoomIn: function (e) {
@@ -7489,8 +7547,9 @@ L.Control.Zoom = L.Control.extend({
 		this._map.zoomOut(e.shiftKey ? 3 : 1);
 	},
 
-	_createButton: function (title, className, container, fn, context) {
+	_createButton: function (html, title, className, container, fn, context) {
 		var link = L.DomUtil.create('a', className, container);
+		link.innerHTML = html;
 		link.href = '#';
 		link.title = title;
 
@@ -7502,6 +7561,21 @@ L.Control.Zoom = L.Control.extend({
 		    .on(link, 'click', fn, context);
 
 		return link;
+	},
+
+	_updateDisabled: function () {
+		var map = this._map,
+			className = 'leaflet-control-zoom-disabled';
+
+		L.DomUtil.removeClass(this._zoomInButton, className);
+		L.DomUtil.removeClass(this._zoomOutButton, className);
+
+		if (map._zoom === map.getMinZoom()) {
+			L.DomUtil.addClass(this._zoomOutButton, className);
+		}
+		if (map._zoom === map.getMaxZoom()) {
+			L.DomUtil.addClass(this._zoomInButton, className);
+		}
 	}
 });
 
@@ -7801,6 +7875,7 @@ L.Control.Layers = L.Control.extend({
 
 		if (!L.Browser.touch) {
 			L.DomEvent.disableClickPropagation(container);
+			L.DomEvent.on(container, 'mousewheel', L.DomEvent.stopPropagation);
 		} else {
 			L.DomEvent.on(container, 'click', L.DomEvent.stopPropagation);
 		}
@@ -8087,7 +8162,7 @@ L.Map.include({
 
 		L.DomUtil.addClass(this._mapPane, 'leaflet-pan-anim');
 
-		var newPos = L.DomUtil.getPosition(this._mapPane).subtract(offset);
+		var newPos = L.DomUtil.getPosition(this._mapPane).subtract(offset)._round();
 		this._panAnim.run(this._mapPane, newPos, duration || 0.25, easeLinearity);
 
 		return this;
