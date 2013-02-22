@@ -1,3 +1,7 @@
+/*
+ * Extends L.Map to handle zoom animations.
+ */
+
 L.Map.mergeOptions({
 	zoomAnimation: L.DomUtil.TRANSITION && !L.Browser.android23 && !L.Browser.mobileOpera
 });
@@ -41,7 +45,7 @@ L.Map.include(!L.DomUtil.TRANSITION ? {} : {
 		return true;
 	},
 
-	_catchTransitionEnd: function (e) {
+	_catchTransitionEnd: function () {
 		if (this._animatingZoom) {
 			this._onZoomTransitionEnd();
 		}

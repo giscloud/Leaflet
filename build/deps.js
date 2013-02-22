@@ -54,7 +54,9 @@ var deps = {
 	},
 
 	Marker: {
-		src: ['layer/marker/Icon.js', 'layer/marker/Icon.Default.js', 'layer/marker/Marker.js'],
+		src: ['layer/marker/Icon.js',
+		      'layer/marker/Icon.Default.js',
+		      'layer/marker/Marker.js'],
 		desc: 'Markers to put on the map.'
 	},
 
@@ -71,7 +73,9 @@ var deps = {
 	},
 
 	Popup: {
-		src: ['layer/Popup.js', 'layer/marker/Marker.Popup.js', 'map/ext/Map.Popup.js'],
+		src: ['layer/Popup.js',
+		      'layer/marker/Marker.Popup.js',
+		      'map/ext/Map.Popup.js'],
 		deps: ['Marker'],
 		desc: 'Used to display the map popup (used mostly for binding HTML data to markers and paths on click).'
 	},
@@ -89,7 +93,9 @@ var deps = {
 
 
 	Path: {
-		src: ['layer/vector/Path.js', 'layer/vector/Path.SVG.js', 'layer/vector/Path.Popup.js'],
+		src: ['layer/vector/Path.js',
+		      'layer/vector/Path.SVG.js',
+		      'layer/vector/Path.Popup.js'],
 		desc: 'Vector rendering core (SVG-powered), enables overlaying the map with SVG paths.',
 		heading: 'Vector layers'
 	},
@@ -106,13 +112,15 @@ var deps = {
 	},
 
 	Polyline: {
-		src: ['geometry/LineUtil.js', 'layer/vector/Polyline.js'],
+		src: ['geometry/LineUtil.js',
+		      'layer/vector/Polyline.js'],
 		deps: ['Path'],
 		desc: 'Polyline overlays.'
 	},
 
 	Polygon: {
-		src: ['geometry/PolyUtil.js', 'layer/vector/Polygon.js'],
+		src: ['geometry/PolyUtil.js',
+		      'layer/vector/Polygon.js'],
 		deps: ['Polyline'],
 		desc: 'Polygon overlays.'
 	},

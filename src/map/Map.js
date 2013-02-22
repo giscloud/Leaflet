@@ -25,7 +25,7 @@ L.Map = L.Class.extend({
 
 		this._initContainer(id);
 		this._initLayout();
-		this._initHooks();
+		this.callInitHooks();
 		this._initEvents();
 
 		if (options.maxBounds) {
@@ -417,7 +417,6 @@ L.Map = L.Class.extend({
 	_initLayout: function () {
 		var container = this._container;
 
-		container.innerHTML = '';
 		L.DomUtil.addClass(container, 'leaflet-container');
 
 		if (L.Browser.touch) {
@@ -464,15 +463,6 @@ L.Map = L.Class.extend({
 
 	_createPane: function (className, container) {
 		return L.DomUtil.create('div', className, container || this._panes.objectsPane);
-	},
-
-	_initializers: [],
-
-	_initHooks: function () {
-		var i, len;
-		for (i = 0, len = this._initializers.length; i < len; i++) {
-			this._initializers[i].call(this);
-		}
 	},
 
 	_initLayers: function (layers) {
@@ -681,16 +671,6 @@ L.Map = L.Class.extend({
 		return Math.max(min, Math.min(max, zoom));
 	}
 });
-
-L.Map.addInitHook = function (fn) {
-	var args = Array.prototype.slice.call(arguments, 1);
-
-	var init = typeof fn === 'function' ? fn : function () {
-		this[fn].apply(this, args);
-	};
-
-	this.prototype._initializers.push(init);
-};
 
 L.map = function (id, options) {
 	return new L.Map(id, options);
