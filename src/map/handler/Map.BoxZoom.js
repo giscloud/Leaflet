@@ -42,7 +42,8 @@ L.Map.BoxZoom = L.Handler.extend({
 		L.DomEvent
 			.on(document, 'mousemove', this._onMouseMove, this)
 			.on(document, 'mouseup', this._onMouseUp, this)
-			.preventDefault(e);
+		    .on(document, 'keydown', this._onKeyDown, this)
+		    .preventDefault(e);
 
 		this._map.fire("boxzoomstart");
 	},
@@ -65,7 +66,7 @@ L.Map.BoxZoom = L.Handler.extend({
 		box.style.height = (Math.max(0, Math.abs(offset.y) - 4)) + 'px';
 	},
 
-	_onMouseUp: function (e) {
+	_finish: function () {
 		this._pane.removeChild(this._box);
 		this._container.style.cursor = '';
 
@@ -73,7 +74,13 @@ L.Map.BoxZoom = L.Handler.extend({
 
 		L.DomEvent
 		    .off(document, 'mousemove', this._onMouseMove)
-		    .off(document, 'mouseup', this._onMouseUp);
+		    .off(document, 'mouseup', this._onMouseUp)
+		    .off(document, 'keydown', this._onKeyDown);
+	},
+
+	_onMouseUp: function (e) {
+
+		this._finish();
 
 		var map = this._map,
 		    layerPoint = map.mouseEventToLayerPoint(e);
@@ -93,6 +100,12 @@ L.Map.BoxZoom = L.Handler.extend({
 		map.fire("boxzoomend", {
 			boxZoomBounds: bounds
 		});
+	},
+
+	_onKeyDown: function (e) {
+		if (e.keyCode === 27) {
+			this._finish();
+		}
 	}
 });
 

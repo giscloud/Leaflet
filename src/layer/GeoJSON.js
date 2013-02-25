@@ -15,13 +15,13 @@ L.GeoJSON = L.FeatureGroup.extend({
 	},
 
 	addData: function (geojson) {
-		var features = geojson instanceof Array ? geojson : geojson.features,
+		var features = L.Util.isArray(geojson) ? geojson : geojson.features,
 		    i, len;
 
 		if (features) {
 			for (i = 0, len = features.length; i < len; i++) {
 				// Only add this if geometry or geometries are set and not null
-				if (features[i].geometries || features[i].geometry) {
+				if (features[i].geometries || features[i].geometry || features[i].features) {
 					this.addData(features[i]);
 				}
 			}
@@ -103,13 +103,17 @@ L.extend(L.GeoJSON, {
 			latlngs = this.coordsToLatLngs(coords, 1);
 			return new L.MultiPolyline(latlngs);
 
-		case "MultiPolygon":
+		case 'MultiPolygon':
 			latlngs = this.coordsToLatLngs(coords, 2);
 			return new L.MultiPolygon(latlngs);
 
-		case "GeometryCollection":
+		case 'GeometryCollection':
 			for (i = 0, len = geometry.geometries.length; i < len; i++) {
-				layer = this.geometryToLayer(geometry.geometries[i], pointToLayer);
+				layer = this.geometryToLayer({
+					geometry: geometry.geometries[i],
+					type: 'Feature',
+					properties: geojson.properties
+				}, pointToLayer);
 				layers.push(layer);
 			}
 			return new L.FeatureGroup(layers);

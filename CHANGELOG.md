@@ -9,11 +9,87 @@ An in-progress version being developed on the master branch.
 
 ### Breaking changes
 
+ * Moved polyline editing code into [Leaflet.draw](https://github.com/Leaflet/Leaflet.draw) plugin (where it fits much better along with all other editing and drawing handlers). The API remains the same.
+
+### Improvements
+
+#### Usability and performance improvements
+
+ * **Improved zoom control design** once more - cleaner, simpler, more accessible (mostly by [@jacobtoye](https://github.com/jacobtoye)). [#1313](https://github.com/Leaflet/Leaflet/issues/1313)
+ * Improved `TileLayer` zoom animation to eliminate flickering in case one tile layer on top of another or when zooming several times quickly. [#1140](https://github.com/Leaflet/Leaflet/issues/1140) [#1437](https://github.com/Leaflet/Leaflet/issues/1437) [#52](https://github.com/Leaflet/Leaflet/issues/52)
+ * Significantly improved mass layer removal performance (by [@jfgirard](https://github.com/jfgirard)). [#1141](https://github.com/Leaflet/Leaflet/pull/1141)
+ * Improved paths with `clickable: false` to allow mouse events to pass through to objects underneath (by [@snkashis](https://github.com/snkashis)). [#1384](https://github.com/Leaflet/Leaflet/pull/1384) [#1281](https://github.com/Leaflet/Leaflet/issues/1281)
+ * Improved attribution control to be much less obtrusive (no "powered by", just a Leaflet link). You can still remove the prefix with `map.attributionControl.setPrefix('')` if you need.
+ * Improved zoom behavior so that there's no drift of coordinates when you change zoom back and forth without panning. [#426](https://github.com/Leaflet/Leaflet/issues/426)
+ * Improved box zoom to be cancelable by pressing Escape (by [@yohanboniface](https://github.com/yohanboniface)). [#1438](https://github.com/Leaflet/Leaflet/issues/1438)
+
+#### API improvements
+
+ * Added **generic toolbar classes** for reuse by plugin developers (used by zoom control).
+ * Made Leaflet classes compatible with **CoffeeScript class inheritance** syntax (by [@calvinmetcalf](https://github.com/calvinmetcalf)). [#1345](https://github.com/Leaflet/Leaflet/pull/1345) [#1314](https://github.com/Leaflet/Leaflet/issues/1314)
+ * Added `Control.Layers` `overlayadd` and `overlayremove` events (by [@calvinmetcalf](https://github.com/calvinmetcalf)). [#1286](https://github.com/Leaflet/Leaflet/issues/1286)
+ * Added `LayerGroup` `hasLayer` method (by [@rvlasveld](https://github.com/rvlasveld)). [#1282](https://github.com/Leaflet/Leaflet/issues/1282) [#1300](https://github.com/Leaflet/Leaflet/pull/1300)
+ * Improved `Polygon` to filter out last point if it's equal to the first one (to fix GeoJSON polygon issues) (by [@snkashis](https://github.com/snkashis)). [#1153](https://github.com/Leaflet/Leaflet/pull/1153) [#1135](https://github.com/Leaflet/Leaflet/issues/1135)
+ * Added `Path` `pointerEvents` option for setting pointer-events on SVG-powered vector layers (by [@inpursuit](https://github.com/inpursuit)). [#1053](https://github.com/Leaflet/Leaflet/pull/1053)
+ * Added `LatLngBounds` `getNorth`, `getEast`, `getSouth`, `getWest` methods (by [@yohanboniface](https://github.com/yohanboniface)). [#1318](https://github.com/Leaflet/Leaflet/issues/1318)
+ * Updated `TileLayer.Canvas` `redraw` method to return `this` (by [@jieter](https://github.com/jieter)). [#1287](https://github.com/Leaflet/Leaflet/pull/1287)
+ * Improved `Marker` and `Path` `bindPopup` method to also accept `Popup` objects (by [@snkashis](https://github.com/snkashis)). [#1385](https://github.com/Leaflet/Leaflet/pull/1385) [#1208](https://github.com/Leaflet/Leaflet/issues/1208) [#1402](https://github.com/Leaflet/Leaflet/pull/1402)
+ * Added `Map` `zoomlevelschange` event that triggers when the current zoom range (min/max) changes (by [@moonlite](https://github.com/moonlite)). [#1376](https://github.com/Leaflet/Leaflet/pull/1376)
+ * Added `Marker` `setPopupContent` method (by [@snkashis](https://github.com/snkashis)). [#1373](https://github.com/Leaflet/Leaflet/pull/1373)
+ * Added `Control` `getContainer` method. [#1409](https://github.com/Leaflet/Leaflet/issues/1409)
+ * Added ability to pass coordinates as simple objects (`{lat: 50, lon: 30}` or `{lat: 50, lng: 30}`). [#1412](https://github.com/Leaflet/Leaflet/issues/1412)
+ * Added `Map` `remove` method to properly destroy the map and clean up all events (by [@jfirebaugh](https://github.com/jfirebaugh)). [#1434](https://github.com/Leaflet/Leaflet/issues/1434) [#1101](https://github.com/Leaflet/Leaflet/issues/1101)
+ * Added `TileLayer` `getContainer` method (by [@tmcw](https://github.com/tmcw)). [#1433](https://github.com/Leaflet/Leaflet/pull/1433)
+
+#### Development workflow improvements
+
+ * Added Testacular integration for running tests in a headless PhantomJS instance and code coverage reporting (by [@edjafarov](https://github.com/edjafarov)). [#1326](https://github.com/Leaflet/Leaflet/issues/1326) [#1340](https://github.com/Leaflet/Leaflet/pull/1340)
+ * Added [Travis CI integration](https://travis-ci.org/Leaflet/Leaflet) for linting and running tests for each commit and pull request automatically (by [@edjafarov](https://github.com/edjafarov)). [#1336](https://github.com/Leaflet/Leaflet/issues/1336)
+
+### Bugfixes
+
+#### General bugfixes
+
+ * Fixed a bug where clicking on a marker with an open popup caused the popup to faded in again (by [@snkashis](https://github.com/snkashis)). [#506](https://github.com/Leaflet/Leaflet/issues/560) [#1386](https://github.com/Leaflet/Leaflet/pull/1386)
+ * Fixed a bug where zoom buttons disabled state didn't update on min/max zoom change (by [@snkashis](https://github.com/snkashis)). [#1372](https://github.com/Leaflet/Leaflet/pull/1372) [#1328](https://github.com/Leaflet/Leaflet/issues/1328)
+
+#### Browser bugfixes
+
+ * Fixed a bug where `TileLayer` opacity didn't work in IE 7-8 (by [@javisantana](https://github.com/javisantana) & [@danzel](https://gi
+.com/danzel)). [#1084](https://github.com/Leaflet/Leaflet/issues/1084) [#1396](https://github.com/Leaflet/Leaflet/pull/1396) [#1371](https://github.com/Leaflet/Leaflet/issues/1371)
+ * Fixed a bug in Android WebView where click was triggered twice on one tap (by [@jerel](https://github.com/jerel)). [#1227](https://github.com/Leaflet/Leaflet/pull/1227) [#1263](https://github.com/Leaflet/Leaflet/issues/1263)
+ * Fixed a bug where mouse coordinates where shifted in Firefox if the map was inside a positioned block on a scrolled page (by [@joschka](https://github.com/joschka)). [#1365](https://github.com/Leaflet/Leaflet/pull/1365) [#1322](https://github.com/Leaflet/Leaflet/issues/1322)
+ * Fixed a bug where box zoom didn't work in some cases in Firefox 18+ (by [@fabriceds](https://github.com/fabriceds)). [#1405](https://github.com/Leaflet/Leaflet/pull/1405)
+ * Fixed a bug where tile layer z-index order sometimes broke after view reset. [#1422](https://github.com/Leaflet/Leaflet/issues/1422)
+
+#### API bugfixes
+
+ * Fixed a bug where default marker icon path wasn't properly detected in some cases in IE6-7 (by [@calvinmetcalf](https://github.com/calvinmetcalf)). [#1294](https://github.com/Leaflet/Leaflet/pull/1294)
+ * Fixed a bug where `Map` `hasLayer` wasn't handling `null` objects (by [@rvlasveld](https://github.com/rvlasveld)). [#1282](https://github.com/Leaflet/Leaflet/issues/1282) [#1302](https://github.com/Leaflet/Leaflet/pull/1302)
+ * Fixed a bug where `TileLayer.WMS` param values weren't escaped in URLs (by [@yohanboniface](https://github.com/yohanboniface)). [#1317](https://github.com/Leaflet/Leaflet/issues/1317)
+ * Fixed a bug where `Map` `moveend` fired before `dragend` on drag (by [@oslek](https://github.com/oslek)). [#1374](https://github.com/Leaflet/Leaflet/pull/1374)
+ * Fixed a bug where panning with inertia produced an excessive `Map` `movestart` event on inertia start (by [@oslek](https://github.com/oslek)). [#1374](https://github.com/Leaflet/Leaflet/pull/1374)
+ * Fixed a bug where `Map` `moveend` fired repeatedly on window resize even if the actual map size didn't change (by [@oslek](https://github.com/oslek)). [#1374](https://github.com/Leaflet/Leaflet/pull/1374)
+ * Fixed a bug where `L.point` and `L.latLng` factories weren't passing `null` and `undefined` values through.
+ * Fixed a bug where layers that belong to multiple feature groups didn't propagate events correctly (by [@danzel](https://github.com/danzel)). [#1359](https://github.com/Leaflet/Leaflet/pull/1359)
+ * Fixed a bug where `Control.Attribution` `removeAttribution` of inexistant attribution corrupted the attribution text. [#1410](https://github.com/Leaflet/Leaflet/issues/1410)
+ * Fixed a bug where `TileLayer.WMS` `tileSize` option was ignored (by [@brianhatchl](https://github.com/brianhatchl)). [#1080](https://github.com/brianhatchl)
+ * Fixed a bug where `Polyline` constructor could overwrite the source array (by [@snkashis](https://github.com/snkashis) and [@danzel](https://github.com/danzel)). [#1439](https://github.com/Leaflet/Leaflet/pull/1439) [#1092](https://github.com/Leaflet/Leaflet/issues/1092) [#1246](https://github.com/Leaflet/Leaflet/issues/1246) [#1426](https://github.com/Leaflet/Leaflet/issues/1426)
+
+## 0.5.1 (February 6, 2013)
+
+ * Fixed a regression with `GeoJSON` not accepting arrays of `FeatureCollection` (by [@snkashis](https://github.com/snkashis)). [#1299](https://github.com/Leaflet/Leaflet/pull/1299) [#1298](https://github.com/Leaflet/Leaflet/issues/1298)
+ * Fixed a regression with `CirleMarker` `setRadius` not working if called before adding the layer to the map (by [@danzel](https://github.com/danzel)). [#1342](https://github.com/Leaflet/Leaflet/issues/1342) [#1297](https://github.com/Leaflet/Leaflet/issues/1297)
+
+## 0.5 (January 17, 2013)
+
+### Breaking changes
+
 Be sure to read through these changes to avoid any issues when upgrading from older versions:
 
  * Removed default `LatLng` wrapping/clamping of coordinates (`-180, -90` to `180, 90`), wrapping moved to an explicit method (`LatLng` `wrap`).
- * Disabled `Map` `worldCopyJump` option by default (moving objects to other copies of the world when panning). Enable it explicitly if you need it.
- * Improved `CRS.Simple` to be more usable out of the box (it has different default scaling and transformation now), see `debug/map/simple-proj.html` for an example.
+ * Disabled `Map` `worldCopyJump` option by default (jumping back to the original world copy when panning out of it). Enable it explicitly if you need it.
+ * Changed styles for the zoom control (you may need to update your custom styles for it).
 
 ### Improvements
 
@@ -38,13 +114,15 @@ Be sure to read through these changes to avoid any issues when upgrading from ol
 
 ##### Other
 
+ * Added **retina support for markers** (through `Icon` `iconRetinaUrl` and `shadowRetinaUrl` options) (by [@danzel](https://github.com/danzel)). [#1048](https://github.com/Leaflet/Leaflet/issues/1048) [#1174](https://github.com/Leaflet/Leaflet/pull/1174)
+ * Added retina-sized default marker icon in addition to standard one (along with its SVG source and with some subtle design improvements) (by [@danzel](https://github.com/danzel)). [#1048](https://github.com/Leaflet/Leaflet/issues/1048) [#1174](https://github.com/Leaflet/Leaflet/pull/1174)
  * Improved vectors updating/removing performance on Canvas backend (by [@danzel](https://github.com/danzel)). [#961](https://github.com/Leaflet/Leaflet/pull/961)
  * Cut total images size from 10KB to 3.2KB with [Yahoo Smush.it](http://www.smushit.com/ysmush.it/). Thanks to Peter Rounce for suggestion.
 
 #### API improvements
 
  * Replaced `L.Transition` with a much better and simpler `L.PosAnimation`.
- * Added `Class` `addInitHook` method for adding constructor hooks to any classes (great extension point for plugin authors). [#1123](https://github.com/Leaflet/Leaflet/issues/1123)
+ * Added `Class` `addInitHook` method for **adding constructor hooks to any classes** (great extension point for plugin authors). [#1123](https://github.com/Leaflet/Leaflet/issues/1123)
  * Added `Map` `whenReady` method (by [@jfirebaugh](https://github.com/jfirebaugh)). [#1063](https://github.com/Leaflet/Leaflet/pull/1063)
  * Added optional `delta` argument to `Map` `zoomIn` and `zoomOut` (1 by default).
  * Added `isValid` method to `LatLngBounds` and `Bounds` (by [@domoritz](https://github.com/domoritz)). [#972](https://github.com/Leaflet/Leaflet/pull/972)
@@ -52,17 +130,19 @@ Be sure to read through these changes to avoid any issues when upgrading from ol
  * Added `Bounds` `getSize` method.
  * Improved markers and vectors click event so that it propagates to map if no one is listening to it (by [@danzel](https://github.com/danzel)). [#834](https://github.com/Leaflet/Leaflet/issues/834) [#1033](https://github.com/Leaflet/Leaflet/pull/1033)
  * Added `Path` `unbindPopup` and `closePopup` methods.
- * Added `Path` `remove` event.
+ * Added `Path` `add` and `remove` event.
  * Added `Marker` `riseOnHover` and `riseOffset` options (for bringing markers to front on hover, disabled by default) (by [jacobtoye](https://github.com/jacobtoye)). [#914](https://github.com/Leaflet/Leaflet/pull/914) [#920](https://github.com/Leaflet/Leaflet/issues/920)
  * Added `Marker` `move` and `remove` events.
  * Added `Marker` `contextmenu` event. [#223](https://github.com/Leaflet/Leaflet/issues/223)
+ * Added `Popup` `zoomAnimation` option (useful to disable when displaying flash content inside popups [#999](https://github.com/Leaflet/Leaflet/issues/999)).
  * Added `FeatureGroup` `layeradd` and `layerremove` events (by [@jacobtoye](https://github.com/jacobtoye)). [#1122](https://github.com/Leaflet/Leaflet/issues/1122)
  * Added `Control.Layers` `baselayerchange` event (by [@jfirebaugh](https://github.com/jfirebaugh)). [#1064](https://github.com/Leaflet/Leaflet/pull/1064)
  * Improved `Control.Layers` to support HTML in layer names (by [@aparshin](https://github.com/aparshin)). [#1055](https://github.com/Leaflet/Leaflet/pull/1055) [#1099](https://github.com/Leaflet/Leaflet/issues/1099)
- * Removed `Browser` `ua`, `ie`, `gecko`, `opera` properties (no longer needed).
- * Added `CRS.Simple` to the list of built-in CRS. It was added earlier but not included in the build.
+ * Added `CRS.Simple` to the list of built-in CRS and improved it to be more usable out of the box (it has different default scaling and transformation now), see `debug/map/simple-proj.html` for an example.
+ * Removed `Browser` `ua`, `gecko`, `opera` properties (no longer needed).
  * Added `L.extend`, `L.bind`, `L.stamp`, `L.setOptions` shortcuts for corresponding `L.Util` methods.
  * Disabled clearing of map container contents on map initialization (as a result of fixing [#278](https://github.com/Leaflet/Leaflet/issues/278)).
+ * Added `L.Util.isArray` function (by [@oslek](https://github.com/oslek)). [#1279](https://github.com/Leaflet/Leaflet/pull/1279)
 
 ### Bugfixes
 
@@ -79,6 +159,7 @@ Be sure to read through these changes to avoid any issues when upgrading from ol
  * Fixed a regression where WMS tiles wouldn't wrap on date lines. [#970](https://github.com/Leaflet/Leaflet/issues/970)
  * Fixed a bug where mouse interaction was affected by map container border width (by [@mohlendo](https://github.com/mohlendo)). [#1204](https://github.com/Leaflet/Leaflet/issues/1205) [#1205](https://github.com/Leaflet/Leaflet/pull/1205)
  * Fixed a bug with weird vector zoom animation when using Canvas for rendering (by [@danzel](https://github.com/danzel)). [#1187](https://github.com/Leaflet/Leaflet/issues/1187) [#1188](https://github.com/Leaflet/Leaflet/pull/1188)
+ * Fixed a bug where max bounds limitation didn't work when navigating the map with a keyboard (by [@snkashis](https://github.com/snkashis)). [#989](https://github.com/Leaflet/Leaflet/issues/989) [#1221](https://github.com/Leaflet/Leaflet/pull/1221)
 
 #### API bugfixes
 
@@ -94,14 +175,27 @@ Be sure to read through these changes to avoid any issues when upgrading from ol
  * Fixed chaining on `Marker` `setIcon`, `setZIndexOffset`, `update` methods. [#1176](https://github.com/Leaflet/Leaflet/issues/1176)
  * Fixed a bug with mouse interaction when the map container contained children with position other than absolute. [#278](https://github.com/Leaflet/Leaflet/issues/278)
  * Fixed a bug with fill/stroke opacity conflicts when using Canvas for rendering (by [@danzel](https://github.com/danzel)). [#1186](https://github.com/Leaflet/Leaflet/issues/1186) [#1889](https://github.com/Leaflet/Leaflet/pull/1189)
+ * Fixed a bug where `FeatureGroup` `bindPopup` didn't take options into account.
+ * Fixed a bug where Canvas-based vector layers didn't cleanup click event on removal properly (by [@snkashis](https://github.com/snkashis)). [#1006](https://github.com/Leaflet/Leaflet/issues/1006) [#1273](https://github.com/Leaflet/Leaflet/pull/1273)
+ * Fixed a bug where `CircleMarker` `setStyle` didn't take `radius` into account (by [@fdlk](https://github.com/fdlk)). [#1012](https://github.com/Leaflet/Leaflet/issues/1012) [#1013](https://github.com/Leaflet/Leaflet/pull/1013)
+ * Fixed a bug where null GeoJSON geometries would throw an error instead of skipping (by [@brianherbert](https://github.com/brianherbert)). [#1240](https://github.com/Leaflet/Leaflet/pull/1240)
+ * Fixed a bug where Canvas-based vector layers passed incorrect `layer` event property on click (by [@snkashis](https://github.com/snkashis)). [#1215](https://github.com/Leaflet/Leaflet/issues/1215) [#1243](https://github.com/Leaflet/Leaflet/pull/1243)
+ * Fixed a bug where `TileLayer.WMS` didn't work correctly if the base URL contained query parameters (by [@snkashis](https://github.com/snkashis)). [#973](https://github.com/Leaflet/Leaflet/issues/973) [#1231](https://github.com/Leaflet/Leaflet/pull/1231)
+ * Fixed a bug where removing a polyline in editing state wouldn't clean up the editing handles (by [@mehmeta](https://github.com/mehmeta)). [#1233](https://github.com/Leaflet/Leaflet/pull/1233)
+ * Fixed a bug where removing a vector layer with a bound popup wouldn't clean up its click event properly (by [@yohanboniface](https://github.com/yohanboniface)). [#1229](https://github.com/Leaflet/Leaflet/pull/1229)
+ * Fixed a bug where `GeoJSON` features with `GeometryCollection` didn't pass properties to `pointToLayer` function (by [@calvinmetcalf](https://github.com/calvinmetcalf)). [#1097](https://github.com/Leaflet/Leaflet/pull/1097)
 
 #### Browser bugfixes
 
+ * Fixed a bug with map **freezing after zoom on Android 4.1**. [#1182](https://github.com/Leaflet/Leaflet/issues/1182)
  * Fixed a bug where "Not implemented" error sometimes appeared in IE6-8 (by [@bryguy](https://github.com/bryguy) and [@lookfirst](https://github.com/lookfirst)). [#892](https://github.com/Leaflet/Leaflet/issues/892) [#893](https://github.com/Leaflet/Leaflet/pull/893)
  * Fixed compatibility with SmoothWheel extension for Firefox (by [@waldir](https://github.com/waldir)). [#1011](https://github.com/Leaflet/Leaflet/pull/1011)
  * Fixed a bug with popup layout in IE6-7 (by [@danzel](https://github.com/danzel)). [#1117](https://github.com/Leaflet/Leaflet/issues/1117)
  * Fixed a bug with incorrect box zoom opacity in IE6-7 (by [@jacobtoye](https://github.com/jacobtoye)). [#1072](https://githubcom/Leaflet/Leaflet/pull/1072)
  * Fixed a bug with box zoom throwing a JS error in IE6-7 (by [@danzel](https://github.com/danzel)). [#1071](https://github.com/Leaflet/Leaflet/pull/1071)
+ * Fixed a bug where `TileLayer` `bringToFront/Back()` throwed an error in IE6-8. [#1168](https://github.com/Leaflet/Leaflet/issues/1168)
+ * Fixed array type checking in the code to be more consistent in a cross-frame environment (by [@oslek](https://github.com/oslek)). [#1279](https://github.com/Leaflet/Leaflet/pull/1279)
+ * Fixed a bug with `-` key not working in Firefox 15+ (thanks to [@mattesCZ](https://github.com/mattesCZ)). [#869](https://github.com/Leaflet/Leaflet/issues/869)
 
 ## 0.4.5 (October 25, 2012)
 

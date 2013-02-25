@@ -7,6 +7,7 @@
 	var ie = !!window.ActiveXObject,
 	    ie6 = ie && !window.XMLHttpRequest,
 	    ie7 = ie && !document.querySelector,
+		ielt9 = ie && !document.addEventListener,
 
 	    // terrible browser detection to work around Safari / iOS / Android browser bugs
 	    ua = navigator.userAgent.toLowerCase(),
@@ -16,9 +17,11 @@
 	    android23 = ua.search('android [23]') !== -1,
 
 	    mobile = typeof orientation !== undefined + '',
-	    msTouch = (window.navigator && window.navigator.msPointerEnabled && window.navigator.msMaxTouchPoints),
-	    retina = (('devicePixelRatio' in window && window.devicePixelRatio > 1) ||
-	              ('matchMedia' in window && window.matchMedia('(min-resolution:144dpi)') && window.matchMedia('(min-resolution:144dpi)').matches)),
+	    msTouch = window.navigator && window.navigator.msPointerEnabled &&
+	              window.navigator.msMaxTouchPoints,
+	    retina = ('devicePixelRatio' in window && window.devicePixelRatio > 1) ||
+	             ('matchMedia' in window && window.matchMedia('(min-resolution:144dpi)') &&
+	              window.matchMedia('(min-resolution:144dpi)').matches),
 
 	    doc = document.documentElement,
 	    ie3d = ie && ('transition' in doc.style),
@@ -61,6 +64,7 @@
 		ie: ie,
 		ie6: ie6,
 		ie7: ie7,
+		ielt9: ielt9,
 		webkit: webkit,
 
 		android: android,
