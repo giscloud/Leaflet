@@ -111,8 +111,6 @@ L.Map.Drag = L.Handler.extend({
 
 		    noInertia = !options.inertia || delay > options.inertiaThreshold || !this._positions[0];
 
-		map.fire('dragend');
-
 		if (noInertia) {
 			map.fire('moveend');
 
@@ -132,9 +130,11 @@ L.Map.Drag = L.Handler.extend({
 			    offset = limitedSpeedVector.multiplyBy(-decelerationDuration / 2).round();
 
 			L.Util.requestAnimFrame(function () {
-				map.panBy(offset, decelerationDuration, ease, true);
+				map.panBy(offset, decelerationDuration, ease);
 			});
 		}
+
+		map.fire('dragend');
 
 		if (options.maxBounds) {
 			// TODO predrag validation instead of animation

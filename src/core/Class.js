@@ -60,7 +60,6 @@ L.Class.extend = function (props) {
 	proto._initHooks = [];
 
 	var parent = this;
-	NewClass.__super__ = parent.prototype;
 	// add method for calling all hooks
 	proto.callInitHooks = function () {
 

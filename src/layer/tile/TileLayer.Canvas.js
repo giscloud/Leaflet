@@ -20,7 +20,6 @@ L.TileLayer.Canvas = L.TileLayer.extend({
 				this._redrawTile(tiles[i]);
 			}
 		}
-		return this;
 	},
 
 	_redrawTile: function (tile) {

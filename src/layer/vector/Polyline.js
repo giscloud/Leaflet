@@ -1,5 +1,5 @@
 /*
- * L.Polyline is used to display polylines on a map.
+ * L.Polygon is used to display polylines on a map.
  */
 
 L.Polyline = L.Path.extend({
@@ -47,7 +47,7 @@ L.Polyline = L.Path.extend({
 
 	spliceLatLngs: function () { // (Number index, Number howMany)
 		var removed = [].splice.apply(this._latlngs, arguments);
-		this._convertLatLngs(this._latlngs, true);
+		this._convertLatLngs(this._latlngs);
 		this.redraw();
 		return removed;
 	},
@@ -85,16 +85,15 @@ L.Polyline = L.Path.extend({
 		return bounds;
 	},
 
-	_convertLatLngs: function (latlngs, overwrite) {
-		var i, len, target = overwrite ? latlngs : [];
-
+	_convertLatLngs: function (latlngs) {
+		var i, len;
 		for (i = 0, len = latlngs.length; i < len; i++) {
-			if (L.Util.isArray(latlngs[i]) && typeof latlngs[i][0] !== 'number') {
+			if (latlngs[i] instanceof Array && typeof latlngs[i][0] !== 'number') {
 				return;
 			}
-			target[i] = L.latLng(latlngs[i]);
+			latlngs[i] = L.latLng(latlngs[i]);
 		}
-		return target;
+		return latlngs;
 	},
 
 	_initEvents: function () {

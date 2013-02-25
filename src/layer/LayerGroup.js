@@ -40,13 +40,6 @@ L.LayerGroup = L.Class.extend({
 		return this;
 	},
 
-	hasLayer: function (layer) {
-		if (!layer) { return false; }
-
-		var id = L.stamp(layer);
-		return this._layers.hasOwnProperty(id);
-	},
-
 	clearLayers: function () {
 		this.eachLayer(this.removeLayer, this);
 		return this;

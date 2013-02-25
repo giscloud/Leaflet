@@ -81,7 +81,7 @@ L.Util = {
 		var params = [];
 		for (var i in obj) {
 			if (obj.hasOwnProperty(i)) {
-				params.push(encodeURIComponent(i) + '=' + encodeURIComponent(obj[i]));
+				params.push(i + '=' + obj[i]);
 			}
 		}
 		return ((!existingUrl || existingUrl.indexOf('?') === -1) ? '?' : '&') + params.join('&');
@@ -95,10 +95,6 @@ L.Util = {
 			}
 			return value;
 		});
-	},
-
-	isArray: function (obj) {
-		return (Object.prototype.toString.call(obj) === '[object Array]');
 	},
 
 	emptyImageUrl: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='

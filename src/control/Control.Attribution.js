@@ -5,7 +5,7 @@
 L.Control.Attribution = L.Control.extend({
 	options: {
 		position: 'bottomright',
-		prefix: '<a href="http://leafletjs.com" title="A JS library for interactive maps">Leaflet</a>'
+		prefix: 'Powered by <a href="http://leafletjs.com">Leaflet</a>'
 	},
 
 	initialize: function (options) {
@@ -56,10 +56,8 @@ L.Control.Attribution = L.Control.extend({
 	removeAttribution: function (text) {
 		if (!text) { return; }
 
-		if (this._attributions[text]) {
-			this._attributions[text]--;
-			this._update();
-		}
+		this._attributions[text]--;
+		this._update();
 
 		return this;
 	},
@@ -84,7 +82,7 @@ L.Control.Attribution = L.Control.extend({
 			prefixAndAttribs.push(attribs.join(', '));
 		}
 
-		this._container.innerHTML = prefixAndAttribs.join(' | ');
+		this._container.innerHTML = prefixAndAttribs.join(' &#8212; ');
 	},
 
 	_onLayerAdd: function (e) {

@@ -29,7 +29,6 @@ L.DomUtil = {
 		    left = 0,
 		    el = element,
 		    docBody = document.body,
-		    docEl = document.documentElement,
 		    pos,
 		    ie7 = L.Browser.ie7;
 
@@ -46,8 +45,8 @@ L.DomUtil = {
 			if (el.offsetParent === docBody && pos === 'absolute') { break; }
 
 			if (pos === 'fixed') {
-				top  += docBody.scrollTop  || docEl.scrollTop  || 0;
-				left += docBody.scrollLeft || docEl.scrollLeft || 0;
+				top  += docBody.scrollTop  || 0;
+				left += docBody.scrollLeft || 0;
 				break;
 			}
 			el = el.offsetParent;

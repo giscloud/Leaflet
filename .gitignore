@@ -7,4 +7,3 @@ tmp/**/*
 *.sublime-*
 _site
 dist/*.js
-coverage/

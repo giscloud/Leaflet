@@ -19,7 +19,7 @@ describe("Class", function() {
 			});
 		});
 
-		it("creates a class with the given constructor & properties", function() {
+		it("should create a class with the given constructor & properties", function() {
 			var a = new Klass();
 
 			expect(constructor).toHaveBeenCalled();
@@ -30,7 +30,7 @@ describe("Class", function() {
 			expect(method).toHaveBeenCalled();
 		});
 
-		it("inherits parent classes' constructor & properties", function() {
+		it("should inherit parent classes' constructor & properties", function() {
 			var Klass2 = Klass.extend({baz: 2});
 
 			var b = new Klass2();
@@ -46,28 +46,28 @@ describe("Class", function() {
 			expect(method).toHaveBeenCalled();
 		});
 
-		it("supports static properties", function() {
+		it("should support static properties", function() {
 			expect(Klass.bla).toEqual(1);
 		});
 
-		it("inherits parent static properties", function() {
+		it("should inherit parent static properties", function() {
 			var Klass2 = Klass.extend({});
 
 			expect(Klass2.bla).toEqual(1);
 		});
 
-		it("overrides parent static properties", function() {
+		it("should override parent static properties", function() {
 			var Klass2 = Klass.extend({statics: {bla: 2}});
 
 			expect(Klass2.bla).toEqual(2);
 		});
 
-		it("includes the given mixin", function() {
+		it("should include the given mixin", function() {
 			var a = new Klass();
 			expect(a.mixin).toBeTruthy();
 		});
 
-		it("includes multiple mixins", function() {
+		it("should be able to include multiple mixins", function() {
 			var Klass2 = L.Class.extend({
 				includes: [{mixin: true}, {mixin2: true}]
 			});
@@ -77,14 +77,14 @@ describe("Class", function() {
 			expect(a.mixin2).toBeTruthy();
 		});
 
-		it("grants the ability to include the given mixin", function() {
+		it("should grant the ability to include the given mixin", function() {
 			Klass.include({mixin2: true});
 
 			var a = new Klass();
 			expect(a.mixin2).toBeTruthy();
 		});
 
-		it("merges options instead of replacing them", function() {
+		it("should merge options instead of replacing them", function() {
 			var KlassWithOptions1 = L.Class.extend({
 				options: {
 					foo1: 1,
@@ -107,7 +107,7 @@ describe("Class", function() {
 			});
 		});
 
-		it("adds constructor hooks correctly", function () {
+		it("should add constructor hooks correctly", function () {
 			var spy1 = jasmine.createSpy("init hook 1");
 
 			Klass.addInitHook(spy1);
@@ -119,7 +119,7 @@ describe("Class", function() {
 			expect(method).toHaveBeenCalledWith(1, 2, 3);
 		});
 
-		it("inherits constructor hooks", function () {
+		it("should inherit constructor hooks", function () {
 			var spy1 = jasmine.createSpy("init hook 1"),
 				spy2 = jasmine.createSpy("init hook 2");
 
@@ -134,7 +134,7 @@ describe("Class", function() {
 			expect(spy2).toHaveBeenCalled();
 		});
 
-		it("does not call child constructor hooks", function () {
+		it("should not call child constructor hooks", function () {
 			var spy1 = jasmine.createSpy("init hook 1"),
 				spy2 = jasmine.createSpy("init hook 2");
 

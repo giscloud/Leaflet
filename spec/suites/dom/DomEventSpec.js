@@ -24,7 +24,7 @@ describe('DomEvent', function() {
 	});
 	
 	describe('#addListener', function() {
-		it('adds a listener and calls it on event', function() {
+		it('should add a listener and call it on event', function() {
 			var listener1 = jasmine.createSpy('listener1'), 
 				listener2 = jasmine.createSpy('listener2');
 		
@@ -37,7 +37,7 @@ describe('DomEvent', function() {
 			expect(listener2).toHaveBeenCalled();
 		});
 		
-		it('binds "this" to the given context', function() {
+		it('should have "this" keyword point to the given context', function() {
 			var obj = {foo: 'bar'},
 				result;
 			
@@ -50,7 +50,7 @@ describe('DomEvent', function() {
 			expect(result).toEqual(obj);
 		});
 		
-		it('passes an event object to the listener', function() {
+		it('should pass an event object to the listener', function() {
 			var type;
 			
 			L.DomEvent.addListener(el, 'click', function(e) {
@@ -63,7 +63,7 @@ describe('DomEvent', function() {
 	});
 	
 	describe('#removeListener', function() {
-		it('removes a previously added listener', function() {
+		it('should remove previously added listener', function() {
 			var listener = jasmine.createSpy('listener');
 			
 			L.DomEvent.addListener(el, 'click', listener);
@@ -76,7 +76,7 @@ describe('DomEvent', function() {
 	});
 	
 	describe('#stopPropagation', function() {
-		it('stops propagation of the given event', function() {
+		it('should stop propagation of the given event', function() {
 			var child = document.createElement('div'),
 				listener = jasmine.createSpy('listener');
 			
@@ -93,7 +93,7 @@ describe('DomEvent', function() {
 		});
 	});
 	describe('#preventDefault', function() {
-		it('prevents the default action of event', function() {
+		it('should prevent the default action of event', function() {
 			L.DomEvent.addListener(el, 'click', L.DomEvent.preventDefault);
 
 			expect(simulateClick(el)).toBe(false);
