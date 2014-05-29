@@ -302,7 +302,7 @@
 /* attribution and scale controls */
 
 .leaflet-container .leaflet-control-attribution {
-	background-color: rgba(255, 255, 255, 0.7);
+	background-color: rgba(255, 255, 255, 0.3);
 	box-shadow: 0 0 5px #bbb;
 	margin: 0;
 	}
