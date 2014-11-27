@@ -3,6 +3,9 @@
  * This code allows you to handle any possible namespace conflicts.
  */
 
+ /*jshint -W079 */
+ /*jshint -W020 */
+
 var L, originalL;
 
 if (typeof exports !== undefined + '') {

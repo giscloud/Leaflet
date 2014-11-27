@@ -28,7 +28,7 @@ L.TileLayer.WMS = L.TileLayer.extend({
 
 		for (var i in options) {
 			// all keys that are not TileLayer options go to WMS params
-			if (!this.options.hasOwnProperty(i)) {
+			if (options.hasOwnProperty(i) && !this.options.hasOwnProperty(i)) {
 				wmsParams[i] = options[i];
 			}
 		}
