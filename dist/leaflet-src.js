@@ -7,6 +7,9 @@
  * This code allows you to handle any possible namespace conflicts.
  */
 
+ /*jshint -W079 */
+ /*jshint -W020 */
+
 var L, originalL;
 
 if (typeof exports !== undefined + '') {
@@ -2680,7 +2683,7 @@ L.TileLayer.WMS = L.TileLayer.extend({
 
 		for (var i in options) {
 			// all keys that are not TileLayer options go to WMS params
-			if (!this.options.hasOwnProperty(i)) {
+			if (options.hasOwnProperty(i) && !this.options.hasOwnProperty(i)) {
 				wmsParams[i] = options[i];
 			}
 		}
@@ -4949,8 +4952,8 @@ L.LineUtil = {
 				return false;
 			// other cases
 			} else {
-				codeOut = codeA || codeB,
-				p = this._getEdgeIntersection(a, b, codeOut, bounds),
+				codeOut = codeA || codeB;
+				p = this._getEdgeIntersection(a, b, codeOut, bounds);
 				newCode = this._getBitCode(p, bounds);
 
 				if (codeOut === codeA) {
@@ -8513,7 +8516,8 @@ L.PosAnimation = L.DomUtil.TRANSITION ? L.PosAnimation : L.PosAnimation.extend({
  */
 
 L.Map.mergeOptions({
-	zoomAnimation: L.DomUtil.TRANSITION && !L.Browser.android23 && !L.Browser.mobileOpera
+	zoomAnimation: L.DomUtil.TRANSITION && !L.Browser.android23 && !L.Browser.mobileOpera,
+	zoomAnimationThreshold: 4
 });
 
 if (L.DomUtil.TRANSITION) {
@@ -8529,6 +8533,9 @@ L.Map.include(!L.DomUtil.TRANSITION ? {} : {
 		if (this._animatingZoom) { return true; }
 
 		if (!this.options.zoomAnimation) { return false; }
+
+		// don't animate if zoom difference is too large
+		if (Math.abs(zoom - this._zoom) > this.options.zoomAnimationThreshold) { return false; }
 
 		var scale = this.getZoomScale(zoom),
 		    offset = this._getCenterOffset(center)._divideBy(1 - 1 / scale);
