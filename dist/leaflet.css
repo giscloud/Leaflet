@@ -322,7 +322,7 @@
 	margin-bottom: 5px;
 	}
 .leaflet-control-scale-line {
-	border: 2px solid #777;
+	border: 1px solid #999;
 	border-top: none;
 	color: black;
 	line-height: 1.1;
