@@ -60,11 +60,15 @@ L.Map.Measure = L.Handler.extend({
 		this._map.off("click", this._onClick, this);
 
 		// remove map objects
-		this._map.removeLayer(this._line);
+		if (this._line) {	
+			this._map.removeLayer(this._line);	
+		}		
 		this._removeElasticLine();
 		this._points = [];
-		this._markers.clearLayers();
-		this._map.removeLayer(this._markers);
+		if (this._markers) {
+			this._markers.clearLayers();
+			this._map.removeLayer(this._markers);
+		}
 		this._elasticLineTipMarker = null;
 
 		// restore map state
