@@ -5530,7 +5530,7 @@ L.CircleMarker = L.Circle.extend({
 	projectLatlngs: function () {
 		this._point = this._map.latLngToLayerPoint(this._latlng);
 	},
-	
+
 	_updateStyle : function () {
 		L.Circle.prototype._updateStyle.call(this);
 		this.setRadius(this.options.radius);
@@ -5918,8 +5918,14 @@ L.DomEvent = {
 
 		var body = document.body,
 		    docEl = document.documentElement,
-		    x = e.pageX ? e.pageX : e.clientX + body.scrollLeft + docEl.scrollLeft,
-		    y = e.pageY ? e.pageY : e.clientY + body.scrollTop + docEl.scrollTop,
+		    x = e.pageX ? e.pageX :
+                !e.clientX && e.touches && e.touches.length ?
+                    e.touches[0].clientX + body.scrollLeft + docEl.scrollLeft :
+                    e.clientX + body.scrollLeft + docEl.scrollLeft,
+		    y = e.pageY ? e.pageY :
+                !e.clientY && e.touches && e.touches.length ?
+                    e.touches[0].clientY + body.scrollLeft + docEl.scrollLeft :
+                    e.clientY + body.scrollTop + docEl.scrollTop,
 		    pos = new L.Point(x, y);
 
 		return (container ? pos._subtract(L.DomUtil.getViewportOffset(container)) : pos);
@@ -6992,9 +6998,9 @@ L.Map.Measure = L.Handler.extend({
 		this._map.off("click", this._onClick, this);
 
 		// remove map objects
-		if (this._line) {	
-			this._map.removeLayer(this._line);	
-		}		
+		if (this._line) {
+			this._map.removeLayer(this._line);
+		}
 		this._removeElasticLine();
 		this._points = [];
 		if (this._markers) {
