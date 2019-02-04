@@ -168,6 +168,7 @@ L.Map.include(!L.DomUtil.TRANSITION ? {} : {
 	_clearTileBg: function () {
 		if (!this._animatingZoom && !this.touchZoom._zooming) {
 			this._tileBg.innerHTML = '';
+			this._tileBg.style[L.DomUtil.TRANSFORM] = '';
 		}
 	}
 });
