@@ -433,7 +433,12 @@ L.TileLayer = L.Class.extend({
 
 	_getWrapTileNum: function () {
 		// TODO refactor, limit is not valid for non-standard projections
-		return Math.pow(2, this._getZoomForUrl());
+		// old code: return Math.pow(2, this._getZoomForUrl());
+
+		// Changes from stackoverflow -> https://stackoverflow.com/a/14568384
+		// Enable more then one tile on "0" zoom level
+		// For now WMTS example with epsg 27700
+		return this._map.options.crs.scale(this._getZoomForUrl());
 	},
 
 	_adjustTilePoint: function (tilePoint) {
