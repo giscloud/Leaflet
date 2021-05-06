@@ -116,7 +116,7 @@ L.Map.include(!L.DomUtil.TRANSITION ? {} : {
 	},
 
 	_getLoadedTilesPercentage: function (container) {
-		var tiles = container.getElementsByTagName('img'),
+		var tiles = container.getElementsByTagName('canvas'),
 		    i, len, count = 0;
 
 		for (i = 0, len = tiles.length; i < len; i++) {
@@ -129,7 +129,7 @@ L.Map.include(!L.DomUtil.TRANSITION ? {} : {
 
 	// stops loading all tiles in the background layer
 	_stopLoadingImages: function (container) {
-		var tiles = Array.prototype.slice.call(container.getElementsByTagName('img')),
+		var tiles = Array.prototype.slice.call(container.getElementsByTagName('canvas')),
 		    i, len, tile;
 
 		for (i = 0, len = tiles.length; i < len; i++) {
